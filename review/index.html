@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重点集 · myStar</title>
+    <link rel="stylesheet" href="../style/shared.css">
+    <link rel="icon" href="data:,">
+    <style>
+        /* Re-declare a subset of Unit card styles so cloned .vocab-card looks correct here. */
+        .vocab-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            gap: 14px;
+        }
+        .vocab-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0;
+        }
+        .vocab-title .phonetic { color: var(--text-secondary); font-weight: 500; font-size: 0.92rem; }
+        .vocab-title .pos { color: var(--text-secondary); font-weight: 500; font-size: 0.88rem; font-style: italic; }
+        .unit-tag {
+            display: inline-block;
+            background: #eef4ff;
+            color: var(--accent-blue);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 999px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .content-group { margin-bottom: 8px; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 20px;
+        }
+        li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            top: -2px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .blank {
+            display: inline-block;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 60px;
+            padding: 0 8px;
+            margin: 0 4px;
+            border-bottom: 2px solid var(--accent-blue);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            vertical-align: bottom;
+            line-height: 1.4;
+        }
+        .blank::after {
+            content: attr(data-answer);
+            color: transparent;
+            transition: color 0.3s ease;
+        }
+        .blank.revealed { border-bottom-color: transparent; }
+        .blank.revealed::after { color: var(--accent-green); }
+        .english-text {
+            font-weight: 500;
+            font-size: 1.05rem;
+            display: block;
+            margin-top: 6px;
+            padding: 6px 0;
+        }
+        span.english-text { display: inline; padding: 0; margin: 0; }
+        .cn { color: var(--text-secondary); font-size: 0.93rem; margin-top: 4px; display: block; }
+        .note {
+            background: #fff8e6;
+            border-left: 3px solid #ff9f0a;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 12px 0;
+            font-size: 0.94rem;
+            color: #5e4a1c;
+        }
+        .compare {
+            background: #eef4ff;
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 12px 0;
+            font-size: 0.94rem;
+        }
+        .section-label {
+            display: inline-block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 14px 0 6px;
+        }
+        /* Hide star + toggle buttons in review (read-only) */
+        .vocab-card .btn-star,
+        .vocab-card .btn-card-toggle { display: none !important; }
+        .card-actions { display: none; }
+
+        .review-loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px 20px;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body ontouchstart="">
+    <div class="container">
+        <div class="topbar">
+            <div>
+                <h1>⭐ 重点集</h1>
+                <p class="subtitle">所有 Unit 中星标过的卡片汇总</p>
+            </div>
+            <a href="../index.html" class="btn-pill">← 主页</a>
+        </div>
+
+        <div id="review-content">
+            <div class="review-loading">加载重点卡片中…</div>
+        </div>
+    </div>
+
+    <script src="../js/manifest.js"></script>
+    <script src="../js/shared.js"></script>
+    <script>
+        (function () {
+            var M = window.MyStar;
+            var manifest = window.MYSTAR_MANIFEST;
+
+            function showEmpty(root) {
+                root.innerHTML =
+                    '<div class="empty-state">' +
+                    '  <div class="icon">⭐</div>' +
+                    '  <div class="msg">还没标记过重点 — 去 Unit 里点 ☆ 标几个吧</div>' +
+                    '  <a href="../index.html" class="btn-pill primary">回主页</a>' +
+                    '</div>';
+            }
+
+            function bindRevealedBlanks(scope) {
+                scope.querySelectorAll('.blank').forEach(function (blank) {
+                    M.addTapListener(blank, function () {
+                        this.classList.toggle('revealed');
+                    });
+                });
+            }
+
+            function loadUnit(book, unit) {
+                var starred = M.readJSON('starredCards_' + unit.slug) || [];
+                if (starred.length === 0) return Promise.resolve({ unit: unit, cards: [] });
+
+                var url = '../units/' + book.id + '/' + unit.slug + '/index.html';
+                return fetch(url)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.text();
+                    })
+                    .then(function (html) {
+                        var doc = new DOMParser().parseFromString(html, 'text/html');
+                        var nodes = starred.map(function (id) {
+                            return doc.getElementById(id);
+                        }).filter(Boolean);
+                        return { unit: unit, cards: nodes };
+                    })
+                    .catch(function (err) {
+                        console.warn('[review] failed to load', url, err);
+                        return { unit: unit, cards: [] };
+                    });
+            }
+
+            function render(results) {
+                var root = document.getElementById('review-content');
+                root.innerHTML = '';
+
+                var any = results.some(function (r) { return r.cards.length > 0; });
+                if (!any) { showEmpty(root); return; }
+
+                results.forEach(function (r) {
+                    if (r.cards.length === 0) return;
+                    r.cards.forEach(function (card) {
+                        var clone = card.cloneNode(true);
+                        // Inject unit tag into the title
+                        var titleEl = clone.querySelector('.vocab-title');
+                        if (titleEl) {
+                            var tag = document.createElement('span');
+                            tag.className = 'unit-tag';
+                            tag.textContent = r.unit.number;
+                            titleEl.insertBefore(tag, titleEl.firstChild);
+                        }
+                        root.appendChild(clone);
+                    });
+                });
+
+                bindRevealedBlanks(root);
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var jobs = [];
+                manifest.books.forEach(function (book) {
+                    book.units.forEach(function (unit) {
+                        jobs.push(loadUnit(book, unit));
+                    });
+                });
+                Promise.all(jobs).then(render);
+            });
+        })();
+    </script>
+</body>
+</html>

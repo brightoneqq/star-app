@@ -1,0 +1,179 @@
+/* Unit page enhancements: top bar, mode tabs, quiz mode UI.
+   Loaded on top of the inline styles already in each Unit HTML. */
+
+.unit-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-blue, #0071e3);
+    background: #fff;
+    border: 1px solid var(--border-color, #d2d2d7);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+.btn-back:hover { background: #f0f0f5; }
+.btn-back:active { transform: scale(0.97); }
+
+/* Segmented control */
+.mode-tabs {
+    display: inline-flex;
+    background: #ececf0;
+    padding: 4px;
+    border-radius: 999px;
+    gap: 2px;
+}
+
+.mode-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary, #86868b);
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mode-tab.active {
+    background: #fff;
+    color: var(--text-primary, #1d1d1f);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ---------- Quiz mode visibility ---------- */
+.quiz-input { display: none; }
+
+body.quiz-mode .blank {
+    /* Hide review-mode blank but keep layout */
+    display: none;
+}
+body.quiz-mode .quiz-input { display: inline-block; }
+
+/* Quiz input styling */
+.quiz-input {
+    font: inherit;
+    color: var(--text-primary, #1d1d1f);
+    background: #fff;
+    border: none;
+    border-bottom: 2px solid var(--accent-blue, #0071e3);
+    padding: 2px 6px;
+    margin: 0 4px;
+    min-width: 60px;
+    text-align: center;
+    font-weight: 500;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    -webkit-appearance: none;
+    border-radius: 4px 4px 0 0;
+}
+
+.quiz-input:focus {
+    outline: none;
+    background: #eef4ff;
+    border-bottom-color: #0058b3;
+}
+
+.quiz-input.correct {
+    border-bottom-color: var(--accent-green, #34c759);
+    color: var(--accent-green, #34c759);
+    background: #f0fdf4;
+}
+
+.quiz-input.wrong {
+    border-bottom-color: #ff3b30;
+    color: #ff3b30;
+    background: #fef2f2;
+}
+
+.quiz-hint {
+    display: inline-block;
+    color: var(--accent-green, #34c759);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0 4px;
+    padding: 1px 6px;
+    background: #f0fdf4;
+    border-radius: 4px;
+}
+
+/* Submit button */
+.quiz-submit-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 32px 0 16px;
+}
+
+.quiz-submit {
+    background: var(--accent-blue, #0071e3);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 36px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 113, 227, 0.25);
+    transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+.quiz-submit:hover { background: #0058b3; transform: translateY(-1px); }
+.quiz-submit:active { transform: scale(0.98); }
+
+body:not(.quiz-mode) .quiz-submit-wrap { display: none; }
+
+/* Result banner */
+.quiz-banner {
+    background: linear-gradient(135deg, #0071e3, #4a9eff);
+    color: #fff;
+    padding: 16px 22px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    box-shadow: 0 12px 28px rgba(0, 113, 227, 0.3);
+}
+
+.quiz-banner.visible { display: flex; }
+
+.quiz-banner .banner-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.quiz-banner .banner-retry {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.quiz-banner .banner-retry:hover { background: rgba(255,255,255,0.3); }
+
+body:not(.quiz-mode) .quiz-banner { display: none; }
+
+@media (max-width: 768px) {
+    .unit-topbar { gap: 10px; }
+    .mode-tab { padding: 7px 14px; font-size: 0.88rem; }
+}

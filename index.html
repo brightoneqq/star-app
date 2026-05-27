@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myStar · 课间复习</title>
+    <link rel="stylesheet" href="style/shared.css">
+    <link rel="icon" href="data:,">
+</head>
+<body ontouchstart="">
+    <div class="container">
+        <div class="topbar">
+            <div>
+                <h1>课间复习</h1>
+                <p class="subtitle">选一个 Unit 开始复习或自测</p>
+            </div>
+            <a href="review/index.html" class="btn-pill primary">⭐ 重点集</a>
+        </div>
+
+        <div id="books"></div>
+    </div>
+
+    <script src="js/manifest.js"></script>
+    <script src="js/shared.js"></script>
+    <script>
+        (function () {
+            var M = window.MyStar;
+            var manifest = window.MYSTAR_MANIFEST;
+
+            function unitRow(unit, bookId) {
+                var slug = unit.slug;
+                var stars = (M.readJSON('starredCards_' + slug) || []).length;
+                var lastVisit = M.readNumber('lastVisit_' + slug);
+                var score = M.readNumber('quizScore_' + slug);
+
+                var a = document.createElement('a');
+                a.className = 'unit-row';
+                a.href = 'units/' + bookId + '/' + slug + '/index.html';
+
+                var stats = '';
+                if (lastVisit) {
+                    stats += '<div class="stat">⏱ ' + M.timeAgo(lastVisit) + '</div>';
+                }
+                if (score != null && !isNaN(score)) {
+                    stats += '<div class="stat score">✓ ' + score + '%</div>';
+                }
+                if (stars > 0) {
+                    stats += '<div class="stat star">★ ' + stars + '</div>';
+                }
+
+                a.innerHTML =
+                    '<div class="unit-badge">' + unit.number + '</div>' +
+                    '<div class="unit-main">' +
+                    '  <div class="unit-title">' + unit.title + '</div>' +
+                    '  <div class="unit-meta">' + unit.cardCount + ' 词 · ' + unit.blankCount + ' 空</div>' +
+                    '</div>' +
+                    '<div class="unit-stats">' + stats + '</div>';
+
+                M.addTapListener(a, function (e) {
+                    if (e && e.preventDefault) e.preventDefault();
+                    window.location.href = a.href;
+                });
+                return a;
+            }
+
+            function render() {
+                var root = document.getElementById('books');
+                root.innerHTML = '';
+                manifest.books.forEach(function (book) {
+                    var group = document.createElement('section');
+                    group.className = 'book-group';
+                    var title = document.createElement('div');
+                    title.className = 'book-title';
+                    title.textContent = book.title;
+                    group.appendChild(title);
+                    book.units.forEach(function (unit) {
+                        group.appendChild(unitRow(unit, book.id));
+                    });
+                    root.appendChild(group);
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', render);
+        })();
+    </script>
+</body>
+</html>

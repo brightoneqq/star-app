@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit 3 Review - 互动复习</title>
+    <link rel="stylesheet" href="../../../style/unit-enhance.css">
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent-blue: #0071e3;
+            --accent-green: #34c759;
+            --border-color: #d2d2d7;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 16px rgba(0,0,0,0.06);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .vocab-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .vocab-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .vocab-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .content-group {
+            margin-bottom: 16px;
+        }
+
+        /* 交互式填空样式 */
+        .blank {
+            display: inline-block;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 40px;
+            padding: 0 8px;
+            margin: 0 4px;
+            border-bottom: 2px solid var(--accent-blue);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            vertical-align: bottom;
+            line-height: 1.4;
+        }
+        
+        .blank::after {
+            content: attr(data-answer);
+            color: transparent;
+            transition: color 0.3s ease;
+        }
+
+        .blank.revealed {
+            border-bottom-color: transparent;
+        }
+
+        .blank.revealed::after {
+            color: var(--accent-green);
+        }
+
+        /* 卡片头部样式 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-card-toggle {
+            background-color: #f0f0f5;
+            color: var(--accent-blue);
+            border: none;
+            border-radius: 12px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-card-toggle:hover {
+            background-color: #e4e4eb;
+        }
+
+        .btn-star {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #d2d2d7;
+            transition: all 0.2s ease;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-star.starred {
+            color: #ff9f0a;
+            transform: scale(1.15);
+        }
+        
+        .btn-star:hover {
+            transform: scale(1.1);
+        }
+
+        /* 英文例句 */
+        .english-text {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 1.05rem;
+            display: block;
+            margin-top: 4px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid var(--border-color);
+        }
+        
+        /* 针对嵌入在行内的英文文本取消块级样式 */
+        li > .english-text {
+            display: block;
+            margin-top: 8px;
+        }
+        
+        span.english-text {
+            display: inline;
+            background: none;
+            border-left: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 16px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            top: -2px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* 悬浮控制按钮 */
+        .controls {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            z-index: 100;
+        }
+
+        button.global-btn {
+            background-color: rgba(0, 113, 227, 0.9);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 113, 227, 0.3);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            letter-spacing: 0.5px;
+        }
+
+        button.global-btn:hover {
+            background-color: rgba(0, 113, 227, 1);
+            transform: scale(1.03) translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 113, 227, 0.4);
+        }
+        
+        button.global-btn:active {
+            transform: scale(0.97);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            body { padding: 24px 16px; }
+            .vocab-card { padding: 24px; }
+            .controls { bottom: 24px; right: 24px; }
+        }
+    </style>
+</head>
+<body ontouchstart="">
+    <div class="container">
+        <header>
+            <h1>Unit 3 Review</h1>
+            <p class="subtitle">👉 点击蓝色的横线即可显示或隐藏正确答案</p>
+        </header>
+        
+        <div id="content">
+
+            <div class="vocab-card" id="vocab-card-1">
+                <div class="card-header">
+                    <div class="vocab-title">1. a). festival</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>['festiv(ə)l] n.节日，多指民俗或宗教节日，有时还可指音乐、戏剧、电影等会演性的节日。一般来说，由定语加名词festival组成的节日，在表示的时候都需加定冠词</li>
+                        <li>端午节 <span class="blank" data-answer="the Dragon Boat Festival"></span></li>
+                        <li>中秋节 <span class="blank" data-answer="the Mid-Autumn Festival"></span></li>
+                        <li>春节 <span class="blank" data-answer="the Spring Festival"></span></li>
+                        <li>春节是中国最重要的节日。<div class="english-text"><span class="blank" data-answer="The Spring Festival"></span> is the most important festival in China.</div></li>
+                        <li><span class="blank" data-answer="festive"></span> adj. 节日的，喜庆的</li>
+                        <li>节日氛围 <span class="blank" data-answer="festive atmosphere"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-2">
+                <div class="card-header">
+                    <div class="vocab-title">1. b). eve</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>[i:v] n.指节日或重大事件的前一天晚上。</li>
+                        <li>在圣诞前夜 <span class="blank" data-answer="on Christmas Eve"></span></li>
+                        <li>我们在新年前夜庆祝。<div class="english-text">We celebrate <span class="blank" data-answer="on New Year's Eve"></span>.</div></li>
+                        <li>在……前夕 <span class="blank" data-answer="on the eve of"></span></li>
+                        <li>在节日前夕，全家人都聚在一起。<div class="english-text"><span class="blank" data-answer="On the eve of"></span> the festival, the whole family gets together.</div></li>
+                        <li>注意介词：在节日…festival 中用 <span class="blank" data-answer="at"></span>，在…day 用 <span class="blank" data-answer="on"></span></li>
+                        <li><span class="blank" data-answer="on"></span> Christmas Day（只有一天）</li>
+                        <li><span class="blank" data-answer="on"></span> New Year's Day（只有一天）</li>
+                        <li><span class="blank" data-answer="at"></span> the Spring Festival</li>
+                        <li><span class="blank" data-answer="at"></span> Christmas (不止一天)</li>
+                        <li><span class="blank" data-answer="at"></span> Easter (不止一天)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-3">
+                <div class="card-header">
+                    <div class="vocab-title">2. across</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>prep./adv. 横过；穿过, <strong>cross</strong> v.</li>
+                        <li>穿过街道 <span class="blank" data-answer="cross the street"></span> = <span class="blank" data-answer="go across the street"></span></li>
+                        <li>全国范围内，<span class="blank" data-answer="across the country"></span></li>
+                        <li>偶然遇见 <span class="blank" data-answer="come across"></span></li>
+                        <li>昨天我在街上偶然碰到lily。<div class="english-text">I <span class="blank" data-answer="came across"></span> Lily on the street yesterday.</div></li>
+                        <li>区分：<strong>through</strong> [θru:] prep.通过,穿过<br>across 表示从表面穿过（横穿），through 表示从内部空间穿过。</li>
+                        <li>练习：<br>
+                            我们游过河。<div class="english-text">We swam <span class="blank" data-answer="across"></span> the river.</div>
+                            他刚刚走过街道。<div class="english-text">He has just walked <span class="blank" data-answer="across"></span> the street.</div>
+                            汽车驶过隧道。<div class="english-text">The car drove <span class="blank" data-answer="through"></span> the tunnel.</div>
+                        </li>
+                        <li>Cross, across, through 的练习：<br>
+                            1. Before you <span class="blank" data-answer="cross"></span> the road, you look left first and then right.<br>
+                            2. They drove <span class="blank" data-answer="across"></span> the street quickly, but the police caught them at last.<br>
+                            3. The sunlight comes <span class="blank" data-answer="through"></span> the glass.<br>
+                            4. The two friends were walking <span class="blank" data-answer="through"></span> the forest.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-4">
+                <div class="card-header">
+                    <div class="vocab-title">3. culture</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>['kʌltʃə] n.文化，指一个群体或社会的习俗、艺术、信仰等。</li>
+                        <li>流行文化 <span class="blank" data-answer="pop culture"></span></li>
+                        <li>传统文化 <span class="blank" data-answer="traditional culture"></span></li>
+                        <li>文化交流 <span class="blank" data-answer="cultural exchange"></span></li>
+                        <li>中国文化很迷人。<div class="english-text">Chinese culture is fascinating.</div></li>
+                        <li><span class="blank" data-answer="cultural"></span> 文化的 a.</li>
+                        <li>*<span class="blank" data-answer="cultivate"></span> 培养 (培养，与文化相关但不完全相同)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-5">
+                <div class="card-header">
+                    <div class="vocab-title">4. luck</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>[lʌk] n.运气,好运，幸运，命运 同义词：fortune ['fɔ:tʃu:n] n.幸运 fortunate,幸运的 a. <br>unfortunately 不幸地 adv.</li>
+                        <li>祝你好运 <div class="english-text"><span class="blank" data-answer="Good luck"></span> to you!</div></li>
+                        <li>坏运气 <span class="blank" data-answer="bad luck"></span></li>
+                        <li>碰运气 <span class="blank" data-answer="try one's luck"></span></li>
+                        <li>祝我考试好运！<div class="english-text">Wish me <span class="blank" data-answer="luck"></span> on my exam!</div></li>
+                        <li><span class="blank" data-answer="unlucky"></span> adj.不幸的 <span class="blank" data-answer="unluckily"></span> adv.不幸地</li>
+                        <li>1. Good <span class="blank" data-answer="luck"></span> to you!<br>
+                            2. You are <span class="blank" data-answer="lucky"></span> to get the ticket to watch the game.<br>
+                            3. <span class="blank" data-answer="Luckily"></span>, he didn't hurt badly.<br>
+                            4. <span class="blank" data-answer="Unluckily"></span>, he didn't pass the exam.<br>
+                            5. It was <span class="blank" data-answer="unlucky"></span> for him to lose the job
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-6">
+                <div class="card-header">
+                    <div class="vocab-title">5. traditional</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ [trə'dɪʃənl/ adj. 传统的；习俗的 反义词: 现代化的 <span class="blank" data-answer="modern"></span></li>
+                        <li>比较级 <span class="blank" data-answer="more traditional"></span> 最高级(the) <span class="blank" data-answer="most traditional"></span></li>
+                        <li>学生们学着演奏像二胡和古筝这样的传统乐器。<div class="english-text">Students learn to play <span class="blank" data-answer="traditional"></span> instruments like the erhu and the guzheng.</div></li>
+                        <li>传统(n.) [trə'dɪʃən] <span class="blank" data-answer="tradition"></span></li>
+                        <li>不同文化里的新年食物传统 <span class="blank" data-answer="New Year food traditions in different cultures"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-7">
+                <div class="card-header">
+                    <div class="vocab-title">6. wealth</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>[welθ] n.财富,富有，大量</li>
+                        <li>名利，<span class="blank" data-answer="fame and wealth"></span></li>
+                        <li>健康胜于财富。<div class="english-text">Health is better than <span class="blank" data-answer="wealth"></span>.</div></li>
+                        <li><span class="blank" data-answer="wealthy"></span> a.富有的， 比较级、最高级：<span class="blank" data-answer="wealthier"></span> <span class="blank" data-answer="wealthiest"></span></li>
+                        <li>他是世界上最富有的人之一。<div class="english-text">He is one of the <span class="blank" data-answer="wealthiest"></span> people in the world.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-8">
+                <div class="card-header">
+                    <div class="vocab-title">7. hope</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>[həʊp] v.希望 hope 用作动词时,后面可接不定式或 that 从句,但不能接“宾语+不定式”, <br>即：hope sb.to do sth(错).如：</li>
+                        <li>①我希望能再次见到你。<div class="english-text">I hope <span class="blank" data-answer="to see"></span> you again. <br>= I hope <span class="blank" data-answer="that I can see"></span> you again.</div></li>
+                        <li>②希望你能帮助我学数学。<div class="english-text">I hope you can <span class="blank" data-answer="help me with"></span> my math.</div></li>
+                        <li>在简略句中,如要表示希望某事不会发生时,应说 <div class="english-text"><span class="blank" data-answer="I hope not"></span>.</div>Eg. ---Is it going to rain this afternoon? --- I hope not.</li>
+                        <li>n. <span class="blank" data-answer="hope"></span></li>
+                        <li>甚至在困难的时候，她从未放弃希望。<div class="english-text">Even in difficult times, she never gave up <span class="blank" data-answer="hope"></span>.</div></li>
+                        <li><span class="blank" data-answer="hopeful"></span> a.: 有希望的,有前途的 <span class="blank" data-answer="hopeless"></span> a. 绝望的，无望的</li>
+                        <li>我们应对未来抱有希望。<div class="english-text">We should be <span class="blank" data-answer="hopeful"></span> about the future.</div></li>
+                        <li>她感到孤独和绝望。<div class="english-text">She felt lonely and <span class="blank" data-answer="hopeless"></span>.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-9">
+                <div class="card-header">
+                    <div class="vocab-title">8. pass</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>[pɑ:s] v. 通过，传递，超过；超越；</li>
+                        <li>通过考试 <span class="blank" data-answer="pass the exam"></span></li>
+                        <li>他努力学习以通过考试，最终成功了。<div class="english-text">He studied hard to <span class="blank" data-answer="pass the exam"></span>, and finally succeeded.</div></li>
+                        <li>n.许可证；通行证,及格 <span class="blank" data-answer="pass"></span></li>
+                        <li>n.通道，段落 <span class="blank" data-answer="passage"></span> n.乘客 <span class="blank" data-answer="passenger"></span></li>
+                        <li><span class="blank" data-answer="pass"></span> <span class="blank" data-answer="on"></span> 传递, 去世（死亡的委婉说法）= pass away</li>
+                        <li>代代相传 <span class="blank" data-answer="pass"></span> <span class="blank" data-answer="from"></span> <span class="blank" data-answer="generation"></span> to generation</li>
+                        <li>你见到约翰时能把这个消息转告他吗？<div class="english-text">Can you <span class="blank" data-answer="pass on"></span> the news to John when you see him?</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-10">
+                <div class="card-header">
+                    <div class="vocab-title">9. tonight</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>['tə'naɪt] adv. 今晚</li>
+                        <li>今晚和我去音乐会吗？<div class="english-text">Will you go to the concert with me <span class="blank" data-answer="tonight"></span>?</div></li>
+                        <li>作时间状语时前不能加介词;类似还有 this, that, last, next, every, yesterday 等。</li>
+                        <li><span class="blank" data-answer="midnight"></span> ['mɪd,naɪt] n.午夜</li>
+                        <li>在午夜 <span class="blank" data-answer="at midnight"></span></li>
+                        <li>在夜晚 <span class="blank" data-answer="at night"></span></li>
+                        <li>在中午 <span class="blank" data-answer="at noon"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-11">
+                <div class="card-header">
+                    <div class="vocab-title">10. country</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>['kʌntrɪ] n. 国家;家乡；乡下</li>
+                        <li>发展中国家 <span class="blank" data-answer="developing country"></span></li>
+                        <li>中国是一个发展中国家。<div class="english-text">China is a <span class="blank" data-answer="developing country"></span>.</div></li>
+                        <li>在乡村 <span class="blank" data-answer="in the country / countryside"></span></li>
+                        <li>我喜欢住在乡下。<div class="english-text">I like living <span class="blank" data-answer="in the country"></span>.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-12">
+                <div class="card-header">
+                    <div class="vocab-title">11. nation</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>['neɪʃən] n.国家;民族; <span class="blank" data-answer="national"></span> ['næʃənl]a.民族的;国家的;全国性的;</li>
+                        <li><span class="blank" data-answer="international"></span> [,ɪntə'næʃənl]a.国际的 [,næʃə'nælɪtɪ] 国籍;国民；民族 <span class="blank" data-answer="nationality"></span></li>
+                        <li>国际贸易 <span class="blank" data-answer="international trade"></span> 国际关系 <span class="blank" data-answer="international relations"></span></li>
+                        <li>练习：nation, national, international, nationality<br>
+                            1.上海是一个国际化的大城市。Shanghai is an <span class="blank" data-answer="international"></span> city.<br>
+                            2. 东平森林国家公园的花很漂亮。The flowers in Dongping <span class="blank" data-answer="National"></span> Forest Park are very beautiful in spring.<br>
+                            3. 全国人民都在看电视。The entire <span class="blank" data-answer="nation"></span> was watching TV.<br>
+                            4. 这个学校有 15 个不同民族的学生。The school has pupils of 15 different <span class="blank" data-answer="nationalities"></span>.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-13">
+                <div class="card-header">
+                    <div class="vocab-title">12. event</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>[ɪ'vent] n.重大事件；事件；比赛项目，尤其指重要的事件或者大事，不寻常的事情</li>
+                        <li>奥运会是一项重大的国际赛事。<div class="english-text">The Olympic Games are a major international <span class="blank" data-answer="event"></span>.</div></li>
+                        <li>报名参加赛事 <span class="blank" data-answer="enter an event / sign up for an event"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-14">
+                <div class="card-header">
+                    <div class="vocab-title">13. square</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>[skweə]n. 广场，正方形；adj. 正方形的</li>
+                        <li>人民广场 <span class="blank" data-answer="People's Square"></span></li>
+                        <li>天安门广场 <span class="blank" data-answer="Tian'anmen Square"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-15">
+                <div class="card-header">
+                    <div class="vocab-title">14. theater</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/'θɪətə(r)/ n. 戏院；剧场；露天剧场</li>
+                        <li>在国王剧院 <span class="blank" data-answer="at the King's Theater"></span></li>
+                        <li>去看戏 <span class="blank" data-answer="go to the theater"></span></li>
+                        <li>你多久看一次戏？<div class="english-text">How often do you <span class="blank" data-answer="go to the theater"></span>?</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-16">
+                <div class="card-header">
+                    <div class="vocab-title">15. firework</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/'faɪəwɜ:k/ n. 烟火；烟花</li>
+                        <li>放几个烟火 <span class="blank" data-answer="set off some fireworks"></span></li>
+                        <li>闭幕烟花音乐会 <span class="blank" data-answer="the closing fireworks concert"></span></li>
+                        <li>游客可以在迪斯尼乐园看烟花表演。<div class="english-text">Tourists can watch <span class="blank" data-answer="firework shows"></span> at Disneyland.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-17">
+                <div class="card-header">
+                    <div class="vocab-title">16. check</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/tʃek/ v. 查明；查看；核实，弄确实</li>
+                        <li>交作业前先检查一遍。<div class="english-text"><span class="blank" data-answer="Check"></span> your homework before handing it in.</div></li>
+                        <li>---Ms Chen 在办公室吗？ ---请稍等.我去看看。<div class="english-text">---Is Ms Chen in the office? ---Please wait a moment. I'll go and <span class="blank" data-answer="check"></span>.</div></li>
+                        <li><span class="blank" data-answer="check out"></span> 查看, 观察（有趣或有吸引力的人或事物）</li>
+                        <li>查看我们的网址 <span class="blank" data-answer="check out our website"></span></li>
+                        <li>看看我们新店的(商品)价格吧！<div class="english-text"><span class="blank" data-answer="Check out"></span> the prices in our new store!</div></li>
+                        <li>*(在旅馆、机场等)登记，报道 <span class="blank" data-answer="check in"></span></li>
+                        <li>我们应该在飞机起飞前至少一小时办理登机手续。<div class="english-text">We should <span class="blank" data-answer="check in"></span> at least one hour before the plane takes off.</div></li>
+                        <li>结账离开（旅馆）等 <span class="blank" data-answer="check out"></span></li>
+                        <li>客人应该在中午前办理退房手续。<div class="english-text">Guests should <span class="blank" data-answer="check out"></span> before noon.</div></li>
+                        <li>check 作(n.) 检查；方格图案；</li>
+                        <li>体格检查 <span class="blank" data-answer="physical check-up / check"></span></li>
+                        <li>格子衬衫 <span class="blank" data-answer="checked shirt"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-18">
+                <div class="card-header">
+                    <div class="vocab-title">17. information</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ˌɪnfəˈmeɪʃn/ u.n. 信息；消息；情报；资料；资讯</li>
+                        <li>一条信息 <span class="blank" data-answer="a piece of information"></span></li>
+                        <li>收集更多关于爱丁堡国际艺术节的信息 <div class="english-text">collect more <span class="blank" data-answer="information"></span> about the Edinburgh International Festival</div></li>
+                        <li>*ICT = <span class="blank" data-answer="Information and Communication Technology"></span></li>
+                        <li>通知，通告(v.) <span class="blank" data-answer="inform"></span></li>
+                        <li>通知某人某事 inform sb. of/about sth.</li>
+                        <li>请告知我节日活动事项。<div class="english-text">Please <span class="blank" data-answer="inform"></span> me of the festival activities.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-19">
+                <div class="card-header">
+                    <div class="vocab-title">18. since</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/sɪns/ prep.自。。。以来；自。。。以后</li>
+                        <li>since 解释为自。。以来之意时，常用于现在完成时的句子中，表示某个动作或状态持续一段时间。(*现在完成时结构：have/has+done)</li>
+                        <li>自 2025 年九月以来我们一直在张江集团中学学习。<div class="english-text">We have been studying at Zhangjiang Group Middle School <span class="blank" data-answer="since September 2025"></span>.</div></li>
+                        <li>since 后加时间点 （年，月日，时刻），不能加一段时间</li>
+                        <li>我学习跳舞三年了。<div class="english-text">I have learned dancing <span class="blank" data-answer="for three years"></span>.</div></li>
+                        <li>since (conj.连词) 自。。。以来</li>
+                        <li>I have learned English since I was in Grade One.(划线提问)<br><div class="english-text"><span class="blank" data-answer="How long"></span> have you learned English?</div></li>
+                        <li>*since 作连词，另一个中文：由于；既然</li>
+                        <li>既然大家都到了，为什么不开始会议呢？<div class="english-text"><span class="blank" data-answer="Since"></span> everyone is here, why not start the meeting?</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-20">
+                <div class="card-header">
+                    <div class="vocab-title">19. perform</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ pəˈfɔːm/ v.表演；演出</li>
+                        <li>表演魔术 <span class="blank" data-answer="perform magic tricks"></span></li>
+                        <li>去年我去爱丁堡并看了一场音乐团队表演的《猫》。<div class="english-text">I went to Edinburgh last year and watched "Cats" <span class="blank" data-answer="performed"></span> by a music group.</div></li>
+                        <li><span class="blank" data-answer="performance"></span> / [pəˈfɔːməns/ n. 表演</li>
+                        <li>演出七点开始。<div class="english-text">The <span class="blank" data-answer="performance"></span> starts at seven.</div></li>
+                        <li>那个女演员做了她人生中最精彩的表演。<div class="english-text">The actress gave the best <span class="blank" data-answer="performance"></span> of her life.</div></li>
+                        <li>作(n.) 另一个中文：表现</li>
+                        <li>良好的学习习惯可以提高你在考试中的表现。<div class="english-text">Good learning habits can improve your <span class="blank" data-answer="performance"></span> in exams.</div></li>
+                        <li>表演者 （n.）<span class="blank" data-answer="performer"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-21">
+                <div class="card-header">
+                    <div class="vocab-title">20. really</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/'rɪ:əli/ adv. 事实上；真正地</li>
+                        <li>告诉我究竟发生了什么。<div class="english-text">Tell me what <span class="blank" data-answer="really"></span> happened.</div></li>
+                        <li>我十分抱歉，但我还有其他事情要做。<div class="english-text">I'm <span class="blank" data-answer="really"></span> sorry, but I have other things to do.</div></li>
+                        <li>真实的,真正的 (adj.) <span class="blank" data-answer="real"></span></li>
+                        <li>那些是真花吗？ <div class="english-text">Are those <span class="blank" data-answer="real"></span> flowers?</div></li>
+                        <li>实现；意识到 （v.）<span class="blank" data-answer="realize"></span></li>
+                        <li>孔雀最终实现了成为一名舞者的梦想。<div class="english-text">The peacock finally <span class="blank" data-answer="realized"></span> her dream of becoming a dancer.</div></li>
+                        <li>我没有察觉到妈妈是那么不开心。<div class="english-text">I didn't <span class="blank" data-answer="realize"></span> that mom was so unhappy.</div></li>
+                        <li>现实 （n.）<span class="blank" data-answer="reality"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-22">
+                <div class="card-header">
+                    <div class="vocab-title">21. musical</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/'mju:zɪkl/ adj.音乐的 n. 音乐剧</li>
+                        <li>音乐天赋/才能/技巧 <span class="blank" data-answer="musical talent / ability / skills"></span></li>
+                        <li>音乐组合；音乐剧团；乐队 <span class="blank" data-answer="musical group / band"></span></li>
+                        <li>《猫》是世界上最成功的音乐剧之一。<div class="english-text">"Cats" is one of the most successful <span class="blank" data-answer="musicals"></span> in the world.</div></li>
+                        <li>一段音乐 <span class="blank" data-answer="a piece of music"></span></li>
+                        <li>最著名的音乐家之一 <span class="blank" data-answer="one of the most famous musicians"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-23">
+                <div class="card-header">
+                    <div class="vocab-title">22. invite</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ ɪn'vaɪt/ v. 邀请</li>
+                        <li>邀请某人做。。。invite sb. to do sth./invite sb to sth.</li>
+                        <li>我想邀请你今晚共进晚餐。<div class="english-text">I would like to <span class="blank" data-answer="invite"></span> you to dinner tonight.</div></li>
+                        <li>Harry 邀请一鸣去他的生日晚会。<div class="english-text">Harry <span class="blank" data-answer="invited"></span> Yiming to his birthday party.</div></li>
+                        <li>(口头或书面的)邀请，请帖（n.） <span class="blank" data-answer="invitation"></span></li>
+                        <li>发出邀请 <span class="blank" data-answer="send an invitation"></span></li>
+                        <li>接受邀请 <span class="blank" data-answer="accept an invitation"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-24">
+                <div class="card-header">
+                    <div class="vocab-title">23. calendar</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/'kælɪndə(r) / n. 日历；历法</li>
+                        <li><span class="blank" data-answer="lunar calendar"></span> 农历</li>
+                        <li>农历八月十五是中秋节。<div class="english-text">August 15th on the <span class="blank" data-answer="lunar calendar"></span> is the Mid-Autumn Festival.</div></li>
+                        <li>有能力的同学可以试着写写其他节日的日期表述<br>
+                            <table>
+                                <tr><th>节日</th><th>英文表达</th></tr>
+                                <tr><td>春节</td><td><span class="blank" data-answer="the Spring Festival"></span></td></tr>
+                                <tr><td>端午节</td><td><span class="blank" data-answer="the Dragon Boat Festival"></span></td></tr>
+                                <tr><td>元宵节</td><td><span class="blank" data-answer="the Lantern Festival"></span></td></tr>
+                                <tr><td>重阳节</td><td><span class="blank" data-answer="the Double Ninth Festival"></span></td></tr>
+                            </table>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-25">
+                <div class="card-header">
+                    <div class="vocab-title">24. reunion</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ˌriːˈjuːniən/ n. 重逢；团聚</li>
+                        <li>春节是家人团聚的日子。<div class="english-text">The Spring Festival is a day for family <span class="blank" data-answer="reunion"></span>.</div></li>
+                        <li>* 学生会 <span class="blank" data-answer="Student Union"></span></li>
+                        <li>*加入工会 <span class="blank" data-answer="join the labor union"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-26">
+                <div class="card-header">
+                    <div class="vocab-title">25. full</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/fʊl/ adj. 满的</li>
+                        <li>这个晚上，我们吃月饼并在公园赏一轮满月。<div class="english-text">This evening, we eat mooncakes and enjoy a <span class="blank" data-answer="full moon"></span> in the park.</div></li>
+                        <li>---你想再喝点汤吗？ ---不用了，我已经饱了。<div class="english-text">---Would you like some more soup? ---No, thanks. I'm already <span class="blank" data-answer="full"></span>.</div></li>
+                        <li>充满。。。 be full of</li>
+                        <li>房间里充满了笑声。<div class="english-text">The room is <span class="blank" data-answer="full of"></span> laughter.</div></li>
+                        <li>诸葛亮是一个充满智慧的人。<div class="english-text">Zhuge Liang is a man <span class="blank" data-answer="full of"></span> wisdom.</div></li>
+                        <li>请填写全名和地址。<div class="english-text">Please fill in your <span class="blank" data-answer="full name"></span> and address.</div></li>
+                        <li>使，，充满 （v.）<span class="blank" data-answer="fill"></span></li>
+                        <li>充满，装满 be full of = <span class="blank" data-answer="be filled with"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-27">
+                <div class="card-header">
+                    <div class="vocab-title">26. post</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ pəʊst/ v. 发帖；寄；邮寄</li>
+                        <li>他们在学校网站上发布了一条关于艺术节的通知。<div class="english-text">They <span class="blank" data-answer="posted"></span> a notice about the art festival on the school website.</div></li>
+                        <li>请你帮我寄这封信好吗？<div class="english-text">Could you please <span class="blank" data-answer="post"></span> this letter for me?</div></li>
+                        <li>邮局 <span class="blank" data-answer="post office"></span></li>
+                        <li>明信片 <span class="blank" data-answer="postcard"></span></li>
+                        <li>邮政编码 <span class="blank" data-answer="postcode"></span></li>
+                        <li>作 （n.） 一个有趣的线上帖子 <span class="blank" data-answer="an interesting online post"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-28">
+                <div class="card-header">
+                    <div class="vocab-title">27. mostly</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ ['məʊstli] / adv. 主要地；一般地；通常</li>
+                        <li>我们大多和朋友庆祝这个节日。<div class="english-text">We <span class="blank" data-answer="mostly"></span> celebrate this festival with our friends.</div></li>
+                        <li>这沙司主要成分是奶油。<div class="english-text">The sauce is <span class="blank" data-answer="mostly"></span> cream.</div></li>
+                        <li>many, much 最高级 <span class="blank" data-answer="most"></span> 最多，最大，大多数</li>
+                        <li>他在所有人中拥有最多的钱。<div class="english-text">He has the <span class="blank" data-answer="most"></span> money of all.</div></li>
+                        <li>大部分的学生对这首诗歌感兴趣。<div class="english-text"><span class="blank" data-answer="Most of"></span> the students are interested in this poem.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-29">
+                <div class="card-header">
+                    <div class="vocab-title">28. harvest</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ 'hɑ:vɪst / n. 收获；收获季节</li>
+                        <li>起初，韩国人是把秋夕节当作庆祝丰收的节日的。<div class="english-text">At first, Koreans celebrated Chuseok as a <span class="blank" data-answer="harvest"></span> festival.</div></li>
+                        <li>农民在收获季节里十分繁忙。<div class="english-text">Farmers are very busy during the <span class="blank" data-answer="harvest"></span> season.</div></li>
+                        <li>(v.) 收割 （庄稼）</li>
+                        <li>农民们每年秋天在田里收割水稻。<div class="english-text">Farmers <span class="blank" data-answer="harvest"></span> rice in the fields every autumn.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-30">
+                <div class="card-header">
+                    <div class="vocab-title">29. experience</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ ɪk'spɪərɪəns / n. 经历； 经验</li>
+                        <li>一个难忘的经历 <span class="blank" data-answer="an unforgettable experience"></span></li>
+                        <li>努力从经验中学习是重要的。<div class="english-text">It is important to try to learn from <span class="blank" data-answer="experience"></span>.</div></li>
+                        <li>作 v. 体验，感受到</li>
+                        <li>去其他国家旅行可以让你体验不同的文化。<div class="english-text">Traveling to other countries can let you <span class="blank" data-answer="experience"></span> different cultures.</div></li>
+                        <li>有经验的 adj. <span class="blank" data-answer="experienced"></span></li>
+                        <li>经验丰富的老师 <span class="blank" data-answer="experienced teachers"></span></li>
+                        <li>做。。。有经验 be experienced in sth/in doing sth.</li>
+                        <li>他养动物很有经验。<div class="english-text">He is <span class="blank" data-answer="experienced"></span> in keeping animals.</div></li>
+                        <li>*缺乏经验的 <span class="blank" data-answer="inexperienced"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-31">
+                <div class="card-header">
+                    <div class="vocab-title">30. count</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>/ kaʊnt / v. 数数； 计算</li>
+                        <li>小 Tom 还不会数数。<div class="english-text">Little Tom can't <span class="blank" data-answer="count"></span> yet.</div></li>
+                        <li>另一个中文：重要=matter</li>
+                        <li>比赛中的每一分都重要。<div class="english-text">Every point in the match <span class="blank" data-answer="counts"></span>.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vocab-card" id="vocab-card-32">
+                <div class="card-header">
+                    <div class="vocab-title">31. count down</div>
+                    <div class="card-actions">
+                        <button class="btn-star" title="标记为重点">☆</button>
+                        <button class="btn-card-toggle">显示答案</button>
+                    </div>
+                </div>
+                <div class="content-group">
+                    <ul>
+                        <li>倒计时</li>
+                        <li>饭后，我们观看了一场灯光秀，并在时代广场倒计时。<div class="english-text">After dinner, we watched a light show and <span class="blank" data-answer="counted down"></span> in Times Square.</div></li>
+                        <li>可数名词 <span class="blank" data-answer="countable noun"></span> 不可数名词 <span class="blank" data-answer="uncountable noun"></span></li>
+                        <li>数不清的 adj. <span class="blank" data-answer="countless"></span></li>
+                        <li>科学老师告诉我们天空中有无数颗星星。<div class="english-text">The science teacher told us that there are <span class="blank" data-answer="countless"></span> stars in the sky.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="toggleBtn" class="global-btn">显示全部答案</button>
+    </div>
+
+    <script>
+        function getStarredCards() {
+            try {
+                var val = localStorage.getItem('starredCards_u3');
+                if (val) return JSON.parse(val);
+            } catch (e) {}
+            var match = document.cookie.match(/(?:^|;\s*)starredCards_u3=([^;]*)/);
+            if (match) {
+                try { return JSON.parse(decodeURIComponent(match[1])); } catch (e) {}
+            }
+            return [];
+        }
+
+        function saveStarredCards(cards) {
+            var val = JSON.stringify(cards);
+            try { localStorage.setItem('starredCards_u3', val); } catch (e) {}
+            var d = new Date();
+            d.setTime(d.getTime() + 10 * 365 * 24 * 60 * 60 * 1000);
+            document.cookie = 'starredCards_u3=' + encodeURIComponent(val)
+                + ';expires=' + d.toUTCString() + ';path=/';
+        }
+
+        function addTapListener(el, handler) {
+            var touchMoved = false;
+            var touchHandled = false;
+            el.addEventListener('touchstart', function() {
+                touchMoved = false;
+                touchHandled = false;
+            }, { passive: true });
+            el.addEventListener('touchmove', function() {
+                touchMoved = true;
+            }, { passive: true });
+            el.addEventListener('touchend', function(e) {
+                if (!touchMoved) {
+                    touchHandled = true;
+                    e.preventDefault();
+                    handler.call(this, e);
+                }
+            });
+            el.addEventListener('click', function(e) {
+                if (!touchHandled) {
+                    handler.call(this, e);
+                }
+                touchHandled = false;
+            });
+        }
+
+        function updateCardButtonState(card) {
+            if (!card) return;
+            var blanks = card.querySelectorAll('.blank');
+            var revealedBlanks = card.querySelectorAll('.blank.revealed');
+            var btn = card.querySelector('.btn-card-toggle');
+            if (!btn || blanks.length === 0) return;
+
+            btn.textContent = (revealedBlanks.length === blanks.length) ? '隐藏答案' : '显示答案';
+            updateGlobalButtonState();
+        }
+
+        function toggleCard(cardId, btn) {
+            var card = document.getElementById(cardId);
+            var blanks = card.querySelectorAll('.blank');
+            var isShowing = btn.textContent === '隐藏答案';
+
+            blanks.forEach(function(blank) {
+                if (isShowing) {
+                    blank.classList.remove('revealed');
+                } else {
+                    blank.classList.add('revealed');
+                }
+            });
+
+            btn.textContent = isShowing ? '显示答案' : '隐藏答案';
+            updateGlobalButtonState();
+        }
+
+        var allRevealed = false;
+        function toggleAll() {
+            allRevealed = !allRevealed;
+            var blanks = document.querySelectorAll('.blank');
+            var btn = document.getElementById('toggleBtn');
+
+            blanks.forEach(function(blank) {
+                if (allRevealed) {
+                    blank.classList.add('revealed');
+                } else {
+                    blank.classList.remove('revealed');
+                }
+            });
+
+            document.querySelectorAll('.btn-card-toggle').forEach(function(b) {
+                b.textContent = allRevealed ? '隐藏答案' : '显示答案';
+            });
+
+            btn.textContent = allRevealed ? '隐藏全部答案' : '显示全部答案';
+        }
+
+        function updateGlobalButtonState() {
+            var blanks = document.querySelectorAll('.blank');
+            var revealedBlanks = document.querySelectorAll('.blank.revealed');
+            var btn = document.getElementById('toggleBtn');
+            allRevealed = blanks.length > 0 && revealedBlanks.length === blanks.length;
+            btn.textContent = allRevealed ? '隐藏全部答案' : '显示全部答案';
+        }
+
+        function toggleStar(cardId) {
+            var card = document.getElementById(cardId);
+            var btn = card.querySelector('.btn-star');
+            var isStarred = btn.classList.toggle('starred');
+
+            btn.textContent = isStarred ? '★' : '☆';
+
+            var starredCards = getStarredCards();
+            if (isStarred) {
+                if (starredCards.indexOf(cardId) === -1) {
+                    starredCards.push(cardId);
+                }
+            } else {
+                starredCards = starredCards.filter(function(id) { return id !== cardId; });
+            }
+            saveStarredCards(starredCards);
+        }
+
+        function sortCards() {
+            var container = document.getElementById('content');
+            var cards = Array.from(container.querySelectorAll('.vocab-card'));
+            var starredCards = getStarredCards();
+
+            cards.sort(function(a, b) {
+                var aStarred = starredCards.indexOf(a.id) !== -1;
+                var bStarred = starredCards.indexOf(b.id) !== -1;
+                if (aStarred && !bStarred) return -1;
+                if (!aStarred && bStarred) return 1;
+                var aNum = parseInt(a.id.split('-').pop());
+                var bNum = parseInt(b.id.split('-').pop());
+                return aNum - bNum;
+            });
+
+            cards.forEach(function(card) { container.appendChild(card); });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bind blank tap events
+            document.querySelectorAll('.blank').forEach(function(blank) {
+                addTapListener(blank, function() {
+                    this.classList.toggle('revealed');
+                    updateCardButtonState(this.closest('.vocab-card'));
+                });
+            });
+
+            // Bind card toggle buttons
+            document.querySelectorAll('.btn-card-toggle').forEach(function(btn) {
+                var card = btn.closest('.vocab-card');
+                if (!card) return;
+                addTapListener(btn, function(e) {
+                    toggleCard(card.id, btn);
+                });
+            });
+
+            // Bind star buttons
+            document.querySelectorAll('.btn-star').forEach(function(btn) {
+                var card = btn.closest('.vocab-card');
+                if (!card) return;
+                addTapListener(btn, function(e) {
+                    toggleStar(card.id);
+                });
+            });
+
+            // Bind global toggle button
+            var globalBtn = document.getElementById('toggleBtn');
+            if (globalBtn) {
+                addTapListener(globalBtn, function() {
+                    toggleAll();
+                });
+            }
+
+            // Restore starred cards
+            var starredCards = getStarredCards();
+            starredCards.forEach(function(id) {
+                var card = document.getElementById(id);
+                if (card) {
+                    var btn = card.querySelector('.btn-star');
+                    btn.classList.add('starred');
+                    btn.textContent = '★';
+                }
+            });
+            sortCards();
+        });
+    </script>
+    <script src="../../../js/shared.js"></script>
+    <script src="../../../js/unit-enhance.js"></script>
+</body>
+</html>
