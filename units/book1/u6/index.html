@@ -7,15 +7,16 @@
     <link rel="stylesheet" href="../../../style/unit-enhance.css">
     <style>
         :root {
-            --bg-color: #f5f5f7;
-            --card-bg: #ffffff;
-            --text-primary: #1d1d1f;
-            --text-secondary: #86868b;
-            --accent-blue: #0071e3;
-            --accent-green: #34c759;
-            --border-color: #d2d2d7;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
-            --shadow-md: 0 8px 16px rgba(0,0,0,0.06);
+            /* Naval explorer theme — see spec-workflow/steering/conventions/colors.md */
+            --bg-color: #E8F0F5;
+            --card-bg: #FCFCF7;
+            --text-primary: #163A5F;
+            --text-secondary: #566B7C;
+            --accent-blue: #1E5FB8;
+            --accent-green: #2C8F5F;
+            --border-color: #D6DDE6;
+            --shadow-sm: 0 2px 4px rgba(22, 58, 95, 0.08);
+            --shadow-md: 0 8px 16px rgba(22, 58, 95, 0.10);
             --radius-md: 12px;
             --radius-lg: 20px;
         }
@@ -115,7 +116,7 @@
         }
 
         .btn-card-toggle {
-            background-color: #f0f0f5;
+            background-color: #E5EAEF;
             color: var(--accent-blue);
             border: none;
             border-radius: 12px;
@@ -127,7 +128,7 @@
         }
 
         .btn-card-toggle:hover {
-            background-color: #e4e4eb;
+            background-color: #D6DDE6;
         }
 
         .btn-star {
@@ -135,7 +136,7 @@
             border: none;
             font-size: 1.2rem;
             cursor: pointer;
-            color: #d2d2d7;
+            color: #D6DDE6;
             transition: all 0.2s ease;
             padding: 4px;
             display: flex;
@@ -144,7 +145,7 @@
         }
 
         .btn-star.starred {
-            color: #ff9f0a;
+            color: #F4A52E;
             transform: scale(1.15);
         }
 
@@ -241,20 +242,18 @@
         }
 
         .note {
-            background: #fff8e6;
-            border-left: 3px solid #ff9f0a;
+            background: #FFF4DC;
             border-radius: 8px;
             padding: 10px 14px;
             margin: 12px 0;
             font-size: 0.95rem;
-            color: #5e4a1c;
+            color: #14304D;
         }
 
-        .note strong { color: #b3700a; }
+        .note strong { color: #C57A0A; }
 
         .compare {
-            background: #eef4ff;
-            border-left: 3px solid var(--accent-blue);
+            background: #E2EBF8;
             border-radius: 8px;
             padding: 10px 14px;
             margin: 12px 0;
@@ -279,14 +278,14 @@
         }
 
         button.global-btn {
-            background-color: rgba(0, 113, 227, 0.9);
+            background-color: rgba(30, 95, 184, 0.92);
             color: white;
             border: none;
             border-radius: 30px;
             padding: 14px 28px;
             font-size: 1rem;
             font-weight: 600;
-            box-shadow: 0 8px 24px rgba(0, 113, 227, 0.3);
+            box-shadow: 0 8px 24px rgba(30, 95, 184, 0.30);
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
             backdrop-filter: blur(10px);
@@ -295,9 +294,9 @@
         }
 
         button.global-btn:hover {
-            background-color: rgba(0, 113, 227, 1);
+            background-color: rgba(30, 95, 184, 1);
             transform: scale(1.03) translateY(-2px);
-            box-shadow: 0 12px 28px rgba(0, 113, 227, 0.4);
+            box-shadow: 0 12px 28px rgba(30, 95, 184, 0.34);
         }
 
         button.global-btn:active {

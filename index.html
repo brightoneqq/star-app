@@ -9,15 +9,26 @@
 </head>
 <body ontouchstart="">
     <div class="container">
-        <div class="topbar">
+        <div class="topbar anim-1">
             <div>
-                <h1>课间复习</h1>
+                <h1>
+                    课间复习
+                    <svg class="h1-squiggle" viewBox="0 0 160 8" preserveAspectRatio="none" aria-hidden="true">
+                        <path d="M2 5 Q 12 0, 22 5 T 42 5 T 62 5 T 82 5 T 102 5 T 122 5 T 142 5 T 158 5"
+                              fill="none" stroke="#1E5FB8" stroke-width="2.5"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </h1>
                 <p class="subtitle">选一个 Unit 开始复习或自测</p>
             </div>
-            <a href="review/index.html" class="btn-pill primary">⭐ 重点集</a>
+            <a id="reviewLink" href="review/index.html" class="btn-pill primary">⭐ 重点集</a>
         </div>
 
-        <div id="books"></div>
+        <div id="guideRow" class="guide-row anim-2"></div>
+
+        <div id="recommendSection" class="anim-3"></div>
+
+        <div id="books" class="anim-4"></div>
     </div>
 
     <script src="js/manifest.js"></script>
@@ -27,34 +38,219 @@
             var M = window.MyStar;
             var manifest = window.MYSTAR_MANIFEST;
 
-            function unitRow(unit, bookId) {
+            // ---------- Inline SVG factory (returns string) ----------
+            function svgCheck() {
+                return '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true">' +
+                       '<path d="M3 10 Q 6 14, 8 12 Q 11 9, 15 4" stroke="#2C8F5F" stroke-width="2.5" ' +
+                       'stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+            }
+            function svgPlay(color) {
+                if (!color) color = '#FFFFFF';
+                return '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+                       '<path d="M4 3 L 13 8 L 4 13 Z" stroke="' + color + '" stroke-width="2.5" ' +
+                       'stroke-linejoin="round" stroke-linecap="round" fill="' + color + '"/></svg>';
+            }
+            function svgClock() {
+                return '<svg width="13" height="13" viewBox="0 0 18 18" fill="none" aria-hidden="true">' +
+                       '<circle cx="9" cy="9" r="6.5" stroke="#566B7C" stroke-width="2" fill="none"/>' +
+                       '<path d="M9 5 L 9 9 L 12 11" stroke="#566B7C" stroke-width="2" ' +
+                       'stroke-linecap="round" fill="none"/></svg>';
+            }
+            // Hand-drawn compass doodle for the recommend card corner.
+            // Slightly wobbly outer circle + 4-point compass rose. Naval navy ink.
+            function svgCompassDoodle() {
+                return '<svg class="rc-doodle" viewBox="0 0 32 32" fill="none" aria-hidden="true">' +
+                       '<path d="M16 3 Q 24 4, 28 11 Q 30 19, 25 26 Q 17 30, 9 26 Q 3 20, 4 12 Q 8 4, 16 3 Z" ' +
+                       'stroke="#163A5F" stroke-width="2" stroke-linejoin="round" fill="#FCFCF7"/>' +
+                       '<path d="M16 7 L 18 16 L 16 25 L 14 16 Z" ' +
+                       'stroke="#163A5F" stroke-width="1.6" stroke-linejoin="round" fill="#1E5FB8"/>' +
+                       '<path d="M7 16 L 16 14 L 25 16 L 16 18 Z" ' +
+                       'stroke="#163A5F" stroke-width="1.6" stroke-linejoin="round" fill="#F4A52E"/>' +
+                       '<circle cx="16" cy="16" r="1.4" fill="#163A5F"/></svg>';
+            }
+            function svgSectionStar() {
+                return '<svg class="st-doodle" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+                       '<path d="M8 2 L 9.5 6.5 L 14 7 L 10.5 10 L 11.5 14 L 8 11.5 L 4.5 14 L 5.5 10 L 2 7 L 6.5 6.5 Z" ' +
+                       'stroke="#163A5F" stroke-width="1.6" stroke-linejoin="round" fill="#2EB5A6"/></svg>';
+            }
+
+            // ---------- Helpers ----------
+            function badgeClassForBookIndex(idx) {
+                var classes = ['b1', 'b2', 'b3', 'b4'];
+                return classes[idx % classes.length];
+            }
+
+            function gatherAllUnits() {
+                var all = [];
+                for (var i = 0; i < manifest.books.length; i++) {
+                    var book = manifest.books[i];
+                    for (var j = 0; j < book.units.length; j++) {
+                        var u = book.units[j];
+                        all.push({
+                            unit: u,
+                            book: book,
+                            bookIndex: i,
+                            stars: (M.readJSON('starredCards_' + u.slug) || []).length,
+                            lastVisit: M.readNumber('lastVisit_' + u.slug),
+                            score: M.readNumber('quizScore_' + u.slug)
+                        });
+                    }
+                }
+                return all;
+            }
+
+            function pickRecommended(all) {
+                if (!all.length) return null;
+                // starredCount DESC -> quizScore ASC (nulls treated as -1 so unscored win)
+                // -> lastVisit ASC (nulls treated as 0 = oldest).
+                var copy = all.slice();
+                copy.sort(function (a, b) {
+                    if (b.stars !== a.stars) return b.stars - a.stars;
+                    var sa = (a.score == null || isNaN(a.score)) ? -1 : a.score;
+                    var sb = (b.score == null || isNaN(b.score)) ? -1 : b.score;
+                    if (sa !== sb) return sa - sb;
+                    var la = a.lastVisit || 0;
+                    var lb = b.lastVisit || 0;
+                    return la - lb;
+                });
+                return copy[0];
+            }
+
+            function statusFor(score) {
+                if (score == null || isNaN(score)) return { cls: 's-new', text: '未开始' };
+                if (score >= 90) return { cls: 's-master', text: '掌握' };
+                return { cls: 's-progress', text: '进行中' };
+            }
+
+            function statusForEntry(entry) {
+                // If never visited (no score and no lastVisit), it's 未开始.
+                if ((entry.score == null || isNaN(entry.score)) && !entry.lastVisit) {
+                    return { cls: 's-new', text: '未开始' };
+                }
+                return statusFor(entry.score);
+            }
+
+            // ---------- Guide row ----------
+            function renderGuideRow(all) {
+                var streak = M.getStreak();
+                var todayCount = 0;
+                var totalCards = 0;
+                var masteredCards = 0;
+                for (var i = 0; i < all.length; i++) {
+                    var e = all[i];
+                    totalCards += (e.unit.cardCount || 0);
+                    if (e.score != null && !isNaN(e.score) && e.score >= 90) {
+                        masteredCards += (e.unit.cardCount || 0);
+                    }
+                    if (e.lastVisit && M.isSameLocalDay(e.lastVisit)) {
+                        todayCount++;
+                    }
+                }
+
+                var row = document.getElementById('guideRow');
+                var streakValue = streak >= 1 ? ('🔥 ' + streak + ' 天') : '开始学习吧';
+                row.innerHTML =
+                    '<div class="guide-card streak">' +
+                    '  <span class="gc-icon">🔥</span>' +
+                    '  <div class="gc-value">' + streakValue + '</div>' +
+                    '  <div class="gc-label">连续</div>' +
+                    '</div>' +
+                    '<div class="guide-card today">' +
+                    '  <span class="gc-icon">📒</span>' +
+                    '  <div class="gc-value">今日 ' + todayCount + ' 个</div>' +
+                    '  <div class="gc-label">已学 Unit</div>' +
+                    '</div>' +
+                    '<div class="guide-card mastery">' +
+                    '  <span class="gc-icon">🌱</span>' +
+                    '  <div class="gc-value">掌握 ' + masteredCards + '/' + totalCards + ' 词</div>' +
+                    '  <div class="gc-label">总进度</div>' +
+                    '</div>';
+            }
+
+            // ---------- Recommended big card ----------
+            function renderRecommend(all) {
+                var section = document.getElementById('recommendSection');
+                var pick = pickRecommended(all);
+                if (!pick) { section.innerHTML = ''; return; }
+
+                var unit = pick.unit;
+                var bookId = pick.book.id;
+                var stars = pick.stars;
+                var lastVisit = pick.lastVisit;
+
+                var metaParts = [];
+                if (lastVisit) {
+                    metaParts.push('<span class="stat">' + svgClock() + ' ' + M.timeAgo(lastVisit) + '</span>');
+                } else {
+                    metaParts.push('<span class="stat">' + svgClock() + ' 还没开始</span>');
+                }
+                metaParts.push('<span class="stat">⭐ ' + stars + '</span>');
+
+                var titleEl = document.createElement('div');
+                titleEl.className = 'section-title';
+                titleEl.innerHTML = svgSectionStar() + '<span>推荐下一课</span>';
+
+                var card = document.createElement('a');
+                card.className = 'recommend-card';
+                card.href = 'units/' + bookId + '/' + unit.slug + '/index.html';
+                card.innerHTML =
+                    svgCompassDoodle() +
+                    '<div class="unit-badge ' + badgeClassForBookIndex(pick.bookIndex) + '">' + unit.number + '</div>' +
+                    '<div class="rc-main">' +
+                    '  <div class="rc-title">' + unit.title + '</div>' +
+                    '  <div class="rc-meta">' + metaParts.join('') + '</div>' +
+                    '</div>' +
+                    '<div class="rc-cta">' + svgPlay('#FFFFFF') + '<span>开始</span></div>';
+
+                M.addTapListener(card, function (e) {
+                    if (e && e.preventDefault) e.preventDefault();
+                    window.location.href = card.href;
+                });
+
+                section.innerHTML = '';
+                section.appendChild(titleEl);
+                section.appendChild(card);
+            }
+
+            // ---------- Unit row ----------
+            function unitRow(entry) {
+                var unit = entry.unit;
+                var bookId = entry.book.id;
                 var slug = unit.slug;
-                var stars = (M.readJSON('starredCards_' + slug) || []).length;
-                var lastVisit = M.readNumber('lastVisit_' + slug);
-                var score = M.readNumber('quizScore_' + slug);
+                var stars = entry.stars;
+                var lastVisit = entry.lastVisit;
+                var score = entry.score;
 
                 var a = document.createElement('a');
                 a.className = 'unit-row';
                 a.href = 'units/' + bookId + '/' + slug + '/index.html';
 
-                var stats = '';
+                var line2parts = [];
                 if (lastVisit) {
-                    stats += '<div class="stat">⏱ ' + M.timeAgo(lastVisit) + '</div>';
+                    line2parts.push('<span class="stat">' + svgClock() + ' ' + M.timeAgo(lastVisit) + '</span>');
                 }
                 if (score != null && !isNaN(score)) {
-                    stats += '<div class="stat score">✓ ' + score + '%</div>';
+                    line2parts.push('<span class="stat score">' + svgCheck() + ' ' + score + '%</span>');
                 }
                 if (stars > 0) {
-                    stats += '<div class="stat star">★ ' + stars + '</div>';
+                    line2parts.push('<span class="stat star">⭐ ' + stars + '</span>');
                 }
 
+                var line2html = '';
+                if (line2parts.length) {
+                    line2html = '<div class="unit-meta-2">' + line2parts.join('') + '</div>';
+                }
+
+                var status = statusForEntry(entry);
+
                 a.innerHTML =
-                    '<div class="unit-badge">' + unit.number + '</div>' +
+                    '<div class="unit-badge ' + badgeClassForBookIndex(entry.bookIndex) + '">' + unit.number + '</div>' +
                     '<div class="unit-main">' +
                     '  <div class="unit-title">' + unit.title + '</div>' +
                     '  <div class="unit-meta">' + unit.cardCount + ' 词 · ' + unit.blankCount + ' 空</div>' +
+                    line2html +
                     '</div>' +
-                    '<div class="unit-stats">' + stats + '</div>';
+                    '<div class="status-badge ' + status.cls + '">' + status.text + '</div>';
 
                 M.addTapListener(a, function (e) {
                     if (e && e.preventDefault) e.preventDefault();
@@ -63,24 +259,55 @@
                 return a;
             }
 
-            function render() {
+            // ---------- Book list ----------
+            function renderBooks(all) {
                 var root = document.getElementById('books');
                 root.innerHTML = '';
-                manifest.books.forEach(function (book) {
+                // Group entries by book preserving order.
+                for (var i = 0; i < manifest.books.length; i++) {
+                    var book = manifest.books[i];
                     var group = document.createElement('section');
                     group.className = 'book-group';
                     var title = document.createElement('div');
                     title.className = 'book-title';
                     title.textContent = book.title;
                     group.appendChild(title);
-                    book.units.forEach(function (unit) {
-                        group.appendChild(unitRow(unit, book.id));
-                    });
+
+                    for (var k = 0; k < all.length; k++) {
+                        if (all[k].book.id === book.id) {
+                            group.appendChild(unitRow(all[k]));
+                        }
+                    }
                     root.appendChild(group);
-                });
+                }
             }
 
-            document.addEventListener('DOMContentLoaded', render);
+            // ---------- Review-link counter ----------
+            function refreshReviewLink() {
+                var link = document.getElementById('reviewLink');
+                if (!link) return;
+                var total = 0;
+                for (var i = 0; i < manifest.books.length; i++) {
+                    var units = manifest.books[i].units;
+                    for (var j = 0; j < units.length; j++) {
+                        var arr = M.readJSON('starredCards_' + units[j].slug);
+                        if (arr && arr.length) total += arr.length;
+                    }
+                }
+                link.innerHTML = '⭐ 重点集' + (total > 0 ? ' (' + total + ')' : '');
+            }
+
+            // ---------- Boot ----------
+            function boot() {
+                M.recordActiveDay();
+                var all = gatherAllUnits();
+                renderGuideRow(all);
+                renderRecommend(all);
+                renderBooks(all);
+                refreshReviewLink();
+            }
+
+            document.addEventListener('DOMContentLoaded', boot);
         })();
     </script>
 </body>
