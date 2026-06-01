@@ -447,110 +447,173 @@ body {
     .unit-title { font-size: 1.0rem; }
 }
 
-/* ===== Sync UI — top user bar ===== */
+/* ===== Sync UI — top user bar (paper-journal idiom) ===== */
 .mystar-userbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 28px;
+    padding: 14px 18px;
+    background: var(--card-bg);
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: 4px 4px 0 0 var(--ink);
+    transform: rotate(-0.3deg);
+    color: var(--ink);
+    font-size: 0.9rem;
+}
+
+.mystar-userbar__row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--ink);
-    z-index: 10;
-    font-size: 0.88rem;
-    color: var(--ink);
+    gap: 12px;
     flex-wrap: wrap;
 }
+.mystar-userbar__row + .mystar-userbar__row {
+    margin-top: 10px;
+}
 
-.mystar-userbar__label {
-    color: var(--text-secondary);
+/* Greeting — primary line */
+.mystar-userbar__greeting {
+    font-size: 1rem;
     font-weight: 600;
-    font-size: 0.85rem;
-}
-
-.mystar-userbar__input {
-    background: var(--bg-color);
-    border: 1px solid var(--ink);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 0.88rem;
+    flex: 1;
+    min-width: 0;
     color: var(--ink);
-    font-family: inherit;
-    min-width: 140px;
+}
+.mystar-userbar__code {
+    display: inline-block;
+    font-weight: 800;
+    background: var(--accent-amber-soft);
+    color: var(--ink);
+    padding: 3px 10px;
+    border-radius: 8px;
+    border: 1.5px solid var(--ink);
+    margin-left: 4px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: 0.02em;
 }
 
+/* Intro line (no-code state) */
+.mystar-userbar__intro {
+    font-size: 0.92rem;
+    color: var(--ink);
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+/* Status — secondary line */
+.mystar-userbar__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+.mystar-userbar__status .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    background: var(--neutral-gray);
+    display: inline-block;
+    flex-shrink: 0;
+}
+.mystar-userbar__status .text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.mystar-userbar__status[data-state="synced"] .dot { background: var(--accent-green); }
+.mystar-userbar__status[data-state="offline"] .dot { background: var(--accent-amber); }
+.mystar-userbar__status[data-state="disabled"] .dot { background: var(--neutral-gray); }
+
+/* Buttons — paper-journal "stamp" */
 .mystar-userbar__btn {
+    min-height: 36px;
+    padding: 8px 16px;
     background: var(--card-bg);
     color: var(--ink);
-    border: 1px solid var(--ink);
+    border: 2px solid var(--ink);
     border-radius: 999px;
-    padding: 6px 14px;
     font-size: 0.85rem;
     font-weight: 700;
+    font-family: inherit;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    font-family: inherit;
+    box-shadow: 2px 2px 0 0 var(--ink);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.mystar-userbar__btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 0 var(--ink);
 }
 
 .mystar-userbar__btn--primary {
     background: var(--accent-navy);
     color: #fff;
-    border-color: var(--accent-navy);
 }
 
-.mystar-userbar__btn--text {
+.mystar-userbar__btn--switch {
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    min-height: 32px;
+}
+
+/* Destructive — deliberately recessive (R9 doesn't compete with greeting) */
+.mystar-userbar__btn--clear {
     background: transparent;
     border: 0;
-    color: var(--text-secondary);
-    text-decoration: underline;
-    padding: 6px 6px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    font-family: inherit;
+    box-shadow: none;
+    color: var(--text-tertiary);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    padding: 4px 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    min-height: 24px;
+}
+.mystar-userbar__btn--clear:hover {
+    color: #C0392B; /* colors.md rule #7 — error-red is a permitted semantic */
+}
+.mystar-userbar__btn--clear:active {
+    transform: none;
+    box-shadow: none;
 }
 
-.mystar-userbar__code {
-    font-weight: 800;
+/* Input (no-code state) */
+.mystar-userbar__input {
+    flex: 1;
+    min-width: 0;
+    min-height: 38px;
+    background: var(--bg-color);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
     color: var(--ink);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.mystar-userbar__input:focus {
+    outline: none;
     background: var(--accent-amber-soft);
-    padding: 2px 8px;
-    border-radius: 6px;
 }
 
 .mystar-userbar__hint {
+    width: 100%;
     color: #C0392B;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
+    margin-top: 4px;
 }
 
-.mystar-userbar__status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+@media (max-width: 480px) {
+    .mystar-userbar {
+        margin: 0 auto 20px;
+        padding: 12px 14px;
+        transform: rotate(-0.2deg);
+    }
+    .mystar-userbar__row + .mystar-userbar__row { margin-top: 8px; }
+    .mystar-userbar__greeting { font-size: 0.95rem; }
 }
-
-.mystar-userbar__status .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--neutral-gray);
-    display: inline-block;
-}
-
-.mystar-userbar__status .text {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-}
-
-.mystar-userbar__status[data-state="synced"] .dot { background: var(--accent-green); }
-.mystar-userbar__status[data-state="offline"] .dot { background: var(--accent-amber); }
-.mystar-userbar__status[data-state="disabled"] .dot { background: var(--neutral-gray); }
 
 /* ===== Modal (paper-journal style) ===== */
 .mystar-modal-overlay {

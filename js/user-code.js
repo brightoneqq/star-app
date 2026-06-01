@@ -223,10 +223,12 @@
 
         if (!code) {
             bar.innerHTML = ''
-                + '<span class="mystar-userbar__label">学习账号</span>'
-                + '<input class="mystar-userbar__input" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false">'
-                + '<button class="mystar-userbar__btn mystar-userbar__btn--primary" type="button">开始</button>'
-                + '<span class="mystar-userbar__hint"></span>';
+                + '<div class="mystar-userbar__intro">输入学习账号，进度会自动同步到云端</div>'
+                + '<div class="mystar-userbar__row">'
+                +     '<input class="mystar-userbar__input" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="6–16 位字母 / 数字 / 下划线">'
+                +     '<button class="mystar-userbar__btn mystar-userbar__btn--primary" type="button">开始</button>'
+                + '</div>'
+                + '<div class="mystar-userbar__hint"></div>';
             if (document.body.firstChild) {
                 document.body.insertBefore(bar, document.body.firstChild);
             } else {
@@ -250,10 +252,14 @@
         }
 
         bar.innerHTML = ''
-            + '<span class="mystar-userbar__greeting">你好，<b class="mystar-userbar__code"></b></span>'
-            + '<button class="mystar-userbar__btn mystar-userbar__btn--switch" type="button">切换</button>'
-            + '<button class="mystar-userbar__btn mystar-userbar__btn--text mystar-userbar__btn--clear" type="button">清除云端进度</button>'
-            + '<span class="mystar-userbar__status" data-state="disabled"><span class="dot"></span><span class="text">未启用云同步</span></span>';
+            + '<div class="mystar-userbar__row">'
+            +     '<span class="mystar-userbar__greeting">你好，<b class="mystar-userbar__code"></b></span>'
+            +     '<button class="mystar-userbar__btn mystar-userbar__btn--switch" type="button">切换</button>'
+            + '</div>'
+            + '<div class="mystar-userbar__row">'
+            +     '<span class="mystar-userbar__status" data-state="disabled"><span class="dot"></span><span class="text">未启用云同步</span></span>'
+            +     '<button class="mystar-userbar__btn mystar-userbar__btn--clear" type="button">清除云端进度</button>'
+            + '</div>';
         if (document.body.firstChild) {
             document.body.insertBefore(bar, document.body.firstChild);
         } else {
