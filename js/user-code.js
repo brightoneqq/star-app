@@ -216,26 +216,54 @@
     }
 
     // ---------- Header strip rendering ----------
+    function _collapsePill() {
+        var bar = document.querySelector('.mystar-userbar');
+        if (bar) bar.setAttribute('data-expanded', 'false');
+    }
+
+    function _wirePill(bar) {
+        var pill = bar.querySelector('.mystar-userbar__pill');
+        if (!pill || !M.addTapListener) return;
+        M.addTapListener(pill, function () {
+            var expanded = bar.getAttribute('data-expanded') === 'true';
+            bar.setAttribute('data-expanded', expanded ? 'false' : 'true');
+            if (!expanded) {
+                // Focus the input when expanding the no-code form.
+                var input = bar.querySelector('.mystar-userbar__input');
+                if (input) setTimeout(function () { try { input.focus(); } catch (e) {} }, 80);
+            }
+        });
+    }
+
     function _renderHeaderStrip() {
         _removeUserbar();
         var bar = _el('div', 'mystar-userbar');
+        bar.setAttribute('data-state', 'disabled');
+        bar.setAttribute('data-expanded', 'false');
         var code = M.getUserCode();
 
         if (!code) {
             bar.innerHTML = ''
-                + '<div class="mystar-userbar__intro">输入学习账号，进度会自动同步到云端</div>'
-                + '<div class="mystar-userbar__row">'
-                +     '<input class="mystar-userbar__input" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="6–16 位字母 / 数字 / 下划线">'
-                +     '<button class="mystar-userbar__btn mystar-userbar__btn--primary" type="button">开始</button>'
-                + '</div>'
-                + '<div class="mystar-userbar__hint"></div>';
+                + '<button class="mystar-userbar__pill" type="button" aria-expanded="false">'
+                +     '<span class="mystar-userbar__cta">+ 设置学习账号</span>'
+                +     '<span class="mystar-userbar__chevron" aria-hidden="true">▾</span>'
+                + '</button>'
+                + '<div class="mystar-userbar__panel">'
+                +     '<div class="mystar-userbar__intro">输入一个 6–16 位的账号，进度会自动同步到云端</div>'
+                +     '<div class="mystar-userbar__form">'
+                +         '<input class="mystar-userbar__input" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="字母 / 数字 / 下划线">'
+                +         '<button class="mystar-userbar__submit" type="button">开始</button>'
+                +     '</div>'
+                +     '<div class="mystar-userbar__hint"></div>'
+                + '</div>';
             if (document.body.firstChild) {
                 document.body.insertBefore(bar, document.body.firstChild);
             } else {
                 document.body.appendChild(bar);
             }
+            _wirePill(bar);
             var input = bar.querySelector('.mystar-userbar__input');
-            var startBtn = bar.querySelector('.mystar-userbar__btn--primary');
+            var startBtn = bar.querySelector('.mystar-userbar__submit');
             var hint = bar.querySelector('.mystar-userbar__hint');
             if (startBtn && M.addTapListener) {
                 M.addTapListener(startBtn, function () { _onStartTapped(input, hint); });
@@ -252,37 +280,52 @@
         }
 
         bar.innerHTML = ''
-            + '<div class="mystar-userbar__row">'
-            +     '<span class="mystar-userbar__greeting">你好，<b class="mystar-userbar__code"></b></span>'
-            +     '<button class="mystar-userbar__btn mystar-userbar__btn--switch" type="button">切换</button>'
-            + '</div>'
-            + '<div class="mystar-userbar__row">'
-            +     '<span class="mystar-userbar__status" data-state="disabled"><span class="dot"></span><span class="text">未启用云同步</span></span>'
-            +     '<button class="mystar-userbar__btn mystar-userbar__btn--clear" type="button">清除云端进度</button>'
+            + '<button class="mystar-userbar__pill" type="button" aria-expanded="false">'
+            +     '<span class="mystar-userbar__dot" aria-hidden="true"></span>'
+            +     '<span class="mystar-userbar__code-inline"></span>'
+            +     '<span class="mystar-userbar__sep" aria-hidden="true">·</span>'
+            +     '<span class="mystar-userbar__status-text">未启用云同步</span>'
+            +     '<span class="mystar-userbar__chevron" aria-hidden="true">▾</span>'
+            + '</button>'
+            + '<div class="mystar-userbar__panel">'
+            +     '<button class="mystar-userbar__action" type="button" data-action="switch">↻  切换账号</button>'
+            +     '<button class="mystar-userbar__action mystar-userbar__action--danger" type="button" data-action="clear">⌫  清除云端进度</button>'
             + '</div>';
         if (document.body.firstChild) {
             document.body.insertBefore(bar, document.body.firstChild);
         } else {
             document.body.appendChild(bar);
         }
-        var codeEl = bar.querySelector('.mystar-userbar__code');
+        var codeEl = bar.querySelector('.mystar-userbar__code-inline');
         if (codeEl) codeEl.textContent = code;
-        var switchBtn = bar.querySelector('.mystar-userbar__btn--switch');
-        var clearBtn = bar.querySelector('.mystar-userbar__btn--clear');
+        _wirePill(bar);
+        var switchBtn = bar.querySelector('[data-action="switch"]');
+        var clearBtn = bar.querySelector('[data-action="clear"]');
         if (switchBtn && M.addTapListener) {
             M.addTapListener(switchBtn, function () {
+                _collapsePill();
                 M.clearUserCode();
                 _renderHeaderStrip();
             });
         }
         if (clearBtn && M.addTapListener) {
-            M.addTapListener(clearBtn, function () { _onClearCloudTapped(); });
+            M.addTapListener(clearBtn, function () {
+                _collapsePill();
+                _onClearCloudTapped();
+            });
         }
-        // Initial paint of status.
-        var statusEl = bar.querySelector('.mystar-userbar__status');
-        if (statusEl && M.getSyncStatus) {
-            _renderStatusInto(statusEl, M.getSyncStatus());
-        }
+        // Initial paint of status (sets data-state on bar root + status text).
+        if (M.getSyncStatus) _applyStatus(M.getSyncStatus());
+    }
+
+    // Apply sync status to the pill (data-state for dot color + status text).
+    function _applyStatus(status) {
+        var bar = document.querySelector('.mystar-userbar');
+        if (!bar) return;
+        var state = (status && status.state) ? status.state : 'disabled';
+        bar.setAttribute('data-state', state);
+        var textEl = bar.querySelector('.mystar-userbar__status-text');
+        if (textEl) textEl.textContent = _statusText(status);
     }
 
     // ---------- Start / probe flow ----------
@@ -445,12 +488,19 @@
     }
 
     // ---------- Wire callback slots ----------
-    M.__onSyncStatus = function (status) {
-        var statusEl = document.querySelector('.mystar-userbar__status');
-        if (!statusEl) return;
-        _renderStatusInto(statusEl, status);
-    };
+    M.__onSyncStatus = function (status) { _applyStatus(status); };
     M.__onToast = _showToast;
+
+    // Tap outside / Esc to collapse the pill (registered once at module load).
+    document.addEventListener('click', function (ev) {
+        var bar = document.querySelector('.mystar-userbar');
+        if (!bar || bar.getAttribute('data-expanded') !== 'true') return;
+        if (bar.contains(ev.target)) return;
+        bar.setAttribute('data-expanded', 'false');
+    });
+    document.addEventListener('keydown', function (ev) {
+        if (ev && (ev.key === 'Escape' || ev.keyCode === 27)) _collapsePill();
+    });
 
     // ---------- Boot ----------
     function _boot() {
