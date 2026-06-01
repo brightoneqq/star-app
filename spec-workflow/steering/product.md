@@ -17,9 +17,14 @@ Primary: a single student (or small group) using the app on an **old iPad** duri
 
 ## Non-goals
 
-- No accounts, no sync, no backend. All state is per-device in `localStorage` + cookie fallback.
-- No build pipeline, no framework, no package manager. Stays a folder of static files.
-- Not optimized for desktop or modern mobile — old iPad Safari is the constraint that drives everything.
+- **Pre-v1 product axis:** no accounts, no sync, no backend. (Superseded by server-user-state in 2026-06 — see below.)
+- No build pipeline for the **frontend layer** — `js/` and `style/` stay file-served-as-is, ES5, no transpiler.
+- No mobile/native apps. No public deployment beyond a single hobby host (currently EdgeOne Pages).
+
+## Optional layers (added 2026-06)
+
+- **Cloud sync via short code** — `server-user-state` adds an opt-in identity (typed short code) + Turso-backed mirror of `MyStar.*` state. The browser is still authoritative offline; the server is a replica that lets the same student carry progress across the prod-URL-changes-per-deploy quirk of the host platform. Frontend constraints are unchanged.
+- **Backend layer (Node 24.5.0)** — see `tech.md` "Backend (optional layer)". Only the `server/`, `functions/`, `migrations/`, and `scripts/` directories use npm + ESM.
 
 ## Distribution
 

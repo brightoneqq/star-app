@@ -150,6 +150,8 @@
 
     <script src="../js/manifest.js"></script>
     <script src="../js/shared.js"></script>
+    <script src="../js/sync.js"></script>
+    <script src="../js/user-code.js"></script>
     <script>
         (function () {
             var M = window.MyStar;
@@ -231,6 +233,11 @@
                 Promise.all(jobs).then(render);
             });
         })();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            MyStar.syncFromServer(function () {});
+        });
     </script>
 </body>
 </html>

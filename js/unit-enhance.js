@@ -287,7 +287,7 @@
 
     // ---------- Entry ----------
     document.addEventListener('DOMContentLoaded', function () {
-        M.writeNumber(KEY_LAST, Date.now());
+        M.writeNumberSilent(KEY_LAST, Date.now());
         injectTopBar();
         renderInitialCardBadges();
 

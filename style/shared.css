@@ -24,6 +24,9 @@
     --neutral-gray: #8E9DAB;
     --neutral-gray-soft: #E5EAEF;
 
+    /* Modal/dialog scrim — composed from --ink (#163A5F) with 0.55 alpha. */
+    --overlay-tint: rgba(22, 58, 95, 0.55);
+
     /* Compat (some review.css references):
        map old token names to new naval palette so the review page still works. */
     --accent-pink: var(--accent-navy);
@@ -442,4 +445,229 @@ body {
     .recommend-card .rc-title { font-size: 1.05rem; }
     .unit-row { padding: 12px 13px; gap: 11px; }
     .unit-title { font-size: 1.0rem; }
+}
+
+/* ===== Sync UI — top user bar ===== */
+.mystar-userbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--ink);
+    z-index: 10;
+    font-size: 0.88rem;
+    color: var(--ink);
+    flex-wrap: wrap;
+}
+
+.mystar-userbar__label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.mystar-userbar__input {
+    background: var(--bg-color);
+    border: 1px solid var(--ink);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.88rem;
+    color: var(--ink);
+    font-family: inherit;
+    min-width: 140px;
+}
+
+.mystar-userbar__btn {
+    background: var(--card-bg);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+.mystar-userbar__btn--primary {
+    background: var(--accent-navy);
+    color: #fff;
+    border-color: var(--accent-navy);
+}
+
+.mystar-userbar__btn--text {
+    background: transparent;
+    border: 0;
+    color: var(--text-secondary);
+    text-decoration: underline;
+    padding: 6px 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+.mystar-userbar__code {
+    font-weight: 800;
+    color: var(--ink);
+    background: var(--accent-amber-soft);
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.mystar-userbar__hint {
+    color: #C0392B;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.mystar-userbar__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mystar-userbar__status .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--neutral-gray);
+    display: inline-block;
+}
+
+.mystar-userbar__status .text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.mystar-userbar__status[data-state="synced"] .dot { background: var(--accent-green); }
+.mystar-userbar__status[data-state="offline"] .dot { background: var(--accent-amber); }
+.mystar-userbar__status[data-state="disabled"] .dot { background: var(--neutral-gray); }
+
+/* ===== Modal (paper-journal style) ===== */
+.mystar-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-tint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    z-index: 100;
+}
+
+.mystar-modal {
+    background: var(--card-bg);
+    border: 2px solid var(--ink);
+    box-shadow: 5px 5px 0 0 var(--ink);
+    border-radius: 12px;
+    padding: 22px 26px;
+    max-width: 480px;
+    width: 90%;
+    color: var(--ink);
+}
+
+.mystar-modal h3 {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.mystar-modal p {
+    margin: 0 0 14px;
+    color: var(--ink);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.mystar-modal__compare {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0 18px;
+}
+
+.mystar-modal__col {
+    flex: 1;
+    background: var(--bg-color);
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color: var(--ink);
+}
+
+.mystar-modal__actions {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.mystar-modal__cta--cloud-wins {
+    background: var(--accent-navy);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+.mystar-modal__cta--local-wins {
+    background: var(--accent-green);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+.mystar-modal__cta--cancel {
+    background: transparent;
+    border: 0;
+    color: var(--text-secondary);
+    text-decoration: underline;
+    padding: 10px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+/* ===== Toast ===== */
+.mystar-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    z-index: 200;
+    font-size: 0.88rem;
+    opacity: 1;
+    transition: opacity 0.4s;
+}
+
+.mystar-toast.fade {
+    opacity: 0;
 }

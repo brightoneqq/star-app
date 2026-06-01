@@ -4,6 +4,37 @@
 (function () {
     var W = window;
 
+    // ---------- Sync key prefix metadata ----------
+    var WRITE_NUMBER_NO_COOKIE = /^quizScore_[^_]+_/;
+    var KNOWN_PREFIXES = ['mystar_', 'quizScore_', 'quizTime_', 'lastVisit_', 'starredCards_'];
+    var _warnedKeys = {};
+
+    function _warnIfUnknownPrefix(key) {
+        if (_warnedKeys[key]) return;
+        for (var i = 0; i < KNOWN_PREFIXES.length; i++) {
+            if (key.indexOf(KNOWN_PREFIXES[i]) === 0) return;
+        }
+        _warnedKeys[key] = 1;
+        if (typeof console !== 'undefined' && console.warn) {
+            console.warn('[MyStar] key "' + key + '" does not match any documented sync prefix; it will not be synced to cloud.');
+        }
+    }
+
+    function _writeCookieStr(key, valueStr) {
+        var d = new Date();
+        d.setTime(d.getTime() + 10 * 365 * 24 * 60 * 60 * 1000);
+        document.cookie = key + '=' + encodeURIComponent(valueStr) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+    }
+
+    function _touchLocalUpdatedAt() {
+        var now = String(Date.now());
+        try { localStorage.setItem('mystar_local_updated_at', now); } catch (e) {}
+        _writeCookieStr('mystar_local_updated_at', now);
+        if (W.MyStar && W.MyStar.__notifyChange) {
+            W.MyStar.__notifyChange();
+        }
+    }
+
     // ---------- Storage (localStorage + cookie double-write) ----------
     function readJSON(key) {
         try {
@@ -20,9 +51,9 @@
     function writeJSON(key, value) {
         var v = JSON.stringify(value);
         try { localStorage.setItem(key, v); } catch (e) {}
-        var d = new Date();
-        d.setTime(d.getTime() + 10 * 365 * 24 * 60 * 60 * 1000);
-        document.cookie = key + '=' + encodeURIComponent(v) + ';expires=' + d.toUTCString() + ';path=/';
+        _writeCookieStr(key, v);
+        _warnIfUnknownPrefix(key);
+        _touchLocalUpdatedAt();
     }
 
     function readNumber(key) {
@@ -30,11 +61,32 @@
             var v = localStorage.getItem(key);
             if (v != null) return Number(v);
         } catch (e) {}
+        var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + key + '=([^;]*)'));
+        if (m) {
+            var n = Number(decodeURIComponent(m[1]));
+            return isNaN(n) ? null : n;
+        }
         return null;
     }
 
     function writeNumber(key, value) {
         try { localStorage.setItem(key, String(value)); } catch (e) {}
+        if (!WRITE_NUMBER_NO_COOKIE.test(key)) _writeCookieStr(key, String(value));
+        _warnIfUnknownPrefix(key);
+        _touchLocalUpdatedAt();
+    }
+
+    function writeJSONSilent(key, value) {
+        var v = JSON.stringify(value);
+        try { localStorage.setItem(key, v); } catch (e) {}
+        _writeCookieStr(key, v);
+        _warnIfUnknownPrefix(key);
+    }
+
+    function writeNumberSilent(key, value) {
+        try { localStorage.setItem(key, String(value)); } catch (e) {}
+        if (!WRITE_NUMBER_NO_COOKIE.test(key)) _writeCookieStr(key, String(value));
+        _warnIfUnknownPrefix(key);
     }
 
     // ---------- Lenient answer matching (quiz mode) ----------
@@ -118,7 +170,7 @@
         out.sort();
         // Cap to last 400.
         if (out.length > 400) out = out.slice(out.length - 400);
-        writeJSON('mystar_active_days', out);
+        writeJSONSilent('mystar_active_days', out);
         return out;
     }
 
@@ -173,6 +225,9 @@
         writeJSON: writeJSON,
         readNumber: readNumber,
         writeNumber: writeNumber,
+        writeJSONSilent: writeJSONSilent,
+        writeNumberSilent: writeNumberSilent,
+        touchLocalUpdatedAt: _touchLocalUpdatedAt,
         isAnswerCorrect: isAnswerCorrect,
         addTapListener: addTapListener,
         timeAgo: timeAgo,

@@ -28,6 +28,7 @@ This is the **single source of truth** for color usage in star-app. All UI work 
 | `--accent-green-soft` | `#E0F0E5` | green 浅底（"掌握"徽章背景、正确答案背景） |
 | `--neutral-gray` | `#8E9DAB` | "未开始"状态文字 |
 | `--neutral-gray-soft` | `#E5EAEF` | "未开始"状态背景 / 分隔线 |
+| `--overlay-tint` | `rgba(22, 58, 95, 0.55)` | Modal / dialog 蒙层；由 --ink 加 0.55 alpha 派生 — 遵循规则 #6 软变体可合成 |
 
 ## 兼容别名（不要在新代码里直接用，但旧代码可保留）
 

@@ -33,6 +33,8 @@
 
     <script src="js/manifest.js"></script>
     <script src="js/shared.js"></script>
+    <script src="js/sync.js"></script>
+    <script src="js/user-code.js"></script>
     <script>
         (function () {
             var M = window.MyStar;
@@ -309,6 +311,11 @@
 
             document.addEventListener('DOMContentLoaded', boot);
         })();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            MyStar.syncFromServer(function () {});
+        });
     </script>
 </body>
 </html>
