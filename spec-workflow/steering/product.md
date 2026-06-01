@@ -23,8 +23,8 @@ Primary: a single student (or small group) using the app on an **old iPad** duri
 
 ## Optional layers (added 2026-06)
 
-- **Cloud sync via short code** — `server-user-state` adds an opt-in identity (typed short code) + Turso-backed mirror of `MyStar.*` state. The browser is still authoritative offline; the server is a replica that lets the same student carry progress across the prod-URL-changes-per-deploy quirk of the host platform. Frontend constraints are unchanged.
-- **Backend layer (Node 24.5.0)** — see `tech.md` "Backend (optional layer)". Only the `server/`, `functions/`, `migrations/`, and `scripts/` directories use npm + ESM.
+- **Cloud sync via short code** — `server-user-state` adds an opt-in identity (typed short code, 6–16 alphanumeric/underscore) + EdgeOne KV-backed mirror of `MyStar.*` state. The browser is still authoritative offline; the server is a replica that lets the same student carry progress across the prod-URL-changes-per-deploy quirk of the host platform. Frontend constraints are unchanged.
+- **Backend layer (Hono on EdgeOne Pages Functions)** — see `tech.md` "Backend (optional layer)". Only the `server/`, `functions/`, and `scripts/` directories use npm + ESM. One runtime dep (`hono`); storage is EdgeOne KV via platform binding (no external SaaS).
 
 ## Distribution
 

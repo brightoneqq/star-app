@@ -11,7 +11,7 @@
         return;
     }
     var M = W.MyStar;
-    var CODE_RE = /^[a-zA-Z0-9_\-]{6,16}$/;
+    var CODE_RE = /^[a-zA-Z0-9_]{6,16}$/;
 
     // ---------- Module state ----------
     var _statusRefreshTimer = null;
@@ -284,7 +284,7 @@
         var raw = (input && input.value) ? input.value : '';
         var typed = raw.replace(/^\s+|\s+$/g, '');
         if (!CODE_RE.test(typed)) {
-            if (hint) hint.textContent = '账号需 6–16 位字母 / 数字 / 下划线 / 中划线';
+            if (hint) hint.textContent = '账号需 6–16 位字母 / 数字 / 下划线';
             return;
         }
         if (hint) hint.textContent = '';

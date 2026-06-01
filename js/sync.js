@@ -55,7 +55,7 @@
             if (m) v = decodeURIComponent(m[1]);
         }
         if (!v) return null;
-        return /^[a-zA-Z0-9_\-]{6,16}$/.test(v) ? v : null;
+        return /^[a-zA-Z0-9_]{6,16}$/.test(v) ? v : null;
     }
 
     function clearUserCode() {

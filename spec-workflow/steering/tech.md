@@ -8,11 +8,11 @@
 
 ### Backend (optional layer, EdgeOne Pages Functions)
 
-- Node 24.5.0
-- Hono ^4.x
-- @libsql/client ^0.14.x (web flavor)
-- ESM (`"type": "module"` in package.json); applies to server/ and scripts/ only.
-- Two dependencies total. Adding a third requires updating this doc and a rationale.
+- Node ≥ 20 (production runs on EdgeOne's runtime).
+- Hono ^4.x — the only runtime dependency.
+- **Storage: EdgeOne KV** — bound to Pages Functions as `env.MYSTAR_KV` (namespace "star"). Edge-native, same-vendor reachability, no external SaaS. Eventually consistent across edge nodes (~60s); fine for single-student/family scale. See `server/db.js`.
+- ESM (`"type": "module"` in package.json); applies to `server/` and `scripts/` only. Frontend in `js/` stays ES5 IIFE.
+- **One dependency total.** Adding a second requires updating this doc and a rationale.
 
 ## Architectural decisions
 
@@ -45,7 +45,8 @@ explicitly accepts this threat model — product-level decision).
 - **No cross-device sync.** Wiping browser data wipes all progress.
 - **Cookie size budget.** Storing large objects via `MyStar.writeJSON` bloats cookies (4KB-per-cookie limit). Keep stored values small (lists of card IDs, scores, timestamps — not full card content).
 - **Quiz answer matching is lenient by design.** Trailing `.,!?。，！？；;` are stripped and `/` separates accepted variants — be mindful when authoring blank answers.
-- Turso outage → app stays usable but progress doesn't sync. Status indicator surfaces this.
+- EdgeOne KV unreachable → app stays usable but progress doesn't sync. Status indicator surfaces this.
+- KV is eventually consistent across edge nodes — a fresh GET on a different node may see up to ~60s of staleness after a PUT. Acceptable for the single-student threat model.
 - Short-code identity is unprotected (R1 #3); product-level decision.
 
 ## External dependencies

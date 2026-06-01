@@ -3,16 +3,14 @@
     "private": true,
     "type": "module",
     "engines": {
-        "node": ">=24.0.0"
+        "node": ">=20.0.0"
     },
     "scripts": {
-        "migrate": "node scripts/migrate.mjs",
-        "build":   "npm run migrate",
-        "dev":     "node scripts/dev.mjs",
-        "test":    "echo 'no test runner — verification is manual + Playwright in spec-test phase' && exit 0"
+        "build": "echo 'no build step — EdgeOne KV needs no migration'",
+        "dev":   "node scripts/dev.mjs",
+        "test":  "echo 'no test runner — verification is manual + Playwright in spec-test phase' && exit 0"
     },
     "dependencies": {
-        "hono":           "^4.6.0",
-        "@libsql/client": "^0.14.0"
+        "hono": "^4.6.0"
     }
 }

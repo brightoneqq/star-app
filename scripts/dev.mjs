@@ -42,10 +42,57 @@ if (fs.existsSync('.env')) {
     }
 }
 
+// ---- In-memory KV mock for local dev ----
+// EdgeOne KV is only available when running on EdgeOne. Locally we emulate the
+// same `get / put / delete / list` surface against a JS Map so `npm run dev`
+// gives a working full-stack experience without a real KV namespace.
+// Optionally persists to `.dev-kv.json` so dev sessions survive restart.
+function createMemoryKv() {
+    const STORE_FILE = path.join(repoRoot, '.dev-kv.json');
+    const store = new Map();
+    try {
+        if (fs.existsSync(STORE_FILE)) {
+            const raw = JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
+            for (const k of Object.keys(raw)) store.set(k, raw[k]);
+        }
+    } catch (_e) { /* ignore */ }
+    function persist() {
+        try {
+            const obj = {};
+            for (const [k, v] of store) obj[k] = v;
+            fs.writeFileSync(STORE_FILE, JSON.stringify(obj, null, 2));
+        } catch (_e) { /* ignore */ }
+    }
+    return {
+        async get(key, type) {
+            const v = store.get(key);
+            if (v === undefined) return null;
+            if (type === 'json') {
+                try { return JSON.parse(v); } catch (_e) { return null; }
+            }
+            return v;
+        },
+        async put(key, value) {
+            store.set(key, String(value));
+            persist();
+        },
+        async delete(key) {
+            store.delete(key);
+            persist();
+        },
+        async list({ prefix } = {}) {
+            const keys = [...store.keys()]
+                .filter((k) => !prefix || k.startsWith(prefix))
+                .map((name) => ({ name }));
+            return { keys };
+        },
+    };
+}
+
 const env = {
-    TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL,
-    TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
+    MYSTAR_KV: createMemoryKv(),
 };
+console.log('[dev] using in-memory KV mock; persists to .dev-kv.json');
 
 const server = http.createServer(async (req, res) => {
     if (req.url && req.url.startsWith('/api/')) {

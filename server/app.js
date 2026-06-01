@@ -1,9 +1,14 @@
-// Hono app skeleton: CORS, structured-log wrapper, /api/health.
-// State routes (GET/PUT/DELETE /api/state) are added in task 8.
+// Hono app for EdgeOne Pages Functions. KV-backed user-state storage.
+// Routes: /api/health, GET/PUT/DELETE /api/state.
+//
+// Storage = EdgeOne KV bound to env.MYSTAR_KV (namespace "star").
+// Value shape per code: { data: {...flat MyStar keys...}, updatedAt, bytes }.
+// No SQL, no migrations, no per-IP rate-limit table (EdgeOne platform handles
+// abuse at the WAF layer; single-student threat model accepts no app-level
+// rate limit for v1 — see design.md and steering/tech.md).
 import { Hono } from 'hono';
-import { getDb } from './db.js';
+import { getKv } from './db.js';
 import { validateCode, payloadByteLength } from './validators.js';
-import { checkAndIncrement } from './rate-limit.js';
 
 function resolveIp(c) {
     const h = c.req.header.bind(c.req);
@@ -48,26 +53,22 @@ app.use('*', async (c, next) => {
 
 app.get('/api/health', (c) => c.json({ ok: true }));
 
-// GET /api/state?code=... — read a user state blob.
+// GET /api/state?code=... — read a user state blob from KV.
 app.get('/api/state', async (c) => {
     const code = c.req.query('code');
     if (!validateCode(code)) {
         return c.json({ error: 'invalid code' }, 400);
     }
     c.set('code', code);
-    const db = getDb(c.env);
-    const result = await db.execute({
-        sql: 'SELECT data_json, updated_at FROM user_state WHERE code = ?',
-        args: [code],
-    });
-    if (result.rows.length === 0) {
+    const kv = getKv(c.env);
+    const stored = await kv.get(code, 'json');
+    if (!stored) {
         return c.json({ data: null, updatedAt: null });
     }
-    const row = result.rows[0];
-    return c.json({ data: JSON.parse(row.data_json), updatedAt: row.updated_at });
+    return c.json({ data: stored.data, updatedAt: stored.updatedAt });
 });
 
-// PUT /api/state — upsert a user state blob (rate-limited, 64KB cap).
+// PUT /api/state — upsert a user state blob (64KB cap).
 app.put('/api/state', async (c) => {
     const rawBody = await c.req.text();
     const bytes = payloadByteLength(rawBody);
@@ -85,21 +86,17 @@ app.put('/api/state', async (c) => {
         return c.json({ error: 'invalid body' }, 400);
     }
     c.set('code', body.code);
-    const db = getDb(c.env);
-    const ip = c.get('ip');
-    const rl = await checkAndIncrement(db, ip);
-    if (!rl.allowed) {
-        c.header('Retry-After', String(rl.resetInSeconds));
-        return c.json({ error: 'rate limited' }, 429);
-    }
-    await db.execute({
-        sql: 'INSERT INTO user_state (code, data_json, updated_at, bytes) VALUES (?, ?, ?, ?) ON CONFLICT(code) DO UPDATE SET data_json = excluded.data_json, updated_at = excluded.updated_at, bytes = excluded.bytes',
-        args: [body.code, JSON.stringify(body.data), body.updatedAt, bytes],
+    const kv = getKv(c.env);
+    const value = JSON.stringify({
+        data: body.data,
+        updatedAt: body.updatedAt,
+        bytes,
     });
+    await kv.put(body.code, value);
     return c.body(null, 204);
 });
 
-// DELETE /api/state — idempotent delete; always 204 on valid input.
+// DELETE /api/state — idempotent delete; always 204 on valid code.
 app.delete('/api/state', async (c) => {
     const rawBody = await c.req.text();
     let body;
@@ -112,10 +109,7 @@ app.delete('/api/state', async (c) => {
         return c.json({ error: 'invalid code' }, 400);
     }
     c.set('code', body.code);
-    await getDb(c.env).execute({
-        sql: 'DELETE FROM user_state WHERE code = ?',
-        args: [body.code],
-    });
+    await getKv(c.env).delete(body.code);
     return c.body(null, 204);
 });
 
