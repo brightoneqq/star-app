@@ -71,7 +71,7 @@ Each task touches 1–3 files and is independently verifiable: backend tasks via
     - _Leverage: design.md "Backend: `server/rate-limit.js`" subsection (SQL verbatim); `server/db.js` from task 4_
     - _Requirements: R10#2 (Turso-table rate limit with INSERT ON CONFLICT, 30/min, Retry-After)_
 
-- [ ] 6a. Hono app skeleton + CORS + structured-log wrapper + `/api/health` in `server/app.js`
+- [ ] 7. Hono app skeleton + CORS + structured-log wrapper + `/api/health` in `server/app.js`
     - File: `server/app.js` (NEW; created in this task with skeleton + health route only)
     - ESM. Imports: `Hono` from `'hono'`; `getDb` from `'./db.js'`; `validateCode`, `payloadByteLength` from `'./validators.js'`; `checkAndIncrement` from `'./rate-limit.js'`. (Some imports are unused in this task but pre-wired for 6b.)
     - `const app = new Hono();`
@@ -83,7 +83,7 @@ Each task touches 1–3 files and is independently verifiable: backend tasks via
     - _Leverage: design "Backend: `server/app.js`" subsection (CORS + log middleware)_
     - _Requirements: R10#3 (structured log; finally pattern catches 4xx early returns)_
 
-- [ ] 6b. State routes (`GET / PUT / DELETE /api/state`) in `server/app.js`
+- [ ] 8. State routes (`GET / PUT / DELETE /api/state`) in `server/app.js`
     - File: `server/app.js` (extends 6a)
     - **`GET /api/state`**: read `code` from query; `validateCode`, 400 on fail; `c.set('code', code)`; `getDb(c.env)`; `SELECT data_json, updated_at FROM user_state WHERE code = ?` (Turso `db.execute({sql, args})` → `{ rows: [...] }`); respond `c.json({ data: JSON.parse(row.data_json), updatedAt: row.updated_at })` or `c.json({ data: null, updatedAt: null })` when no row.
     - **`PUT /api/state`**: read `var rawBody = await c.req.text();` ONCE; check `payloadByteLength(rawBody) <= 65536` → 413 otherwise (`c.set('bytes', rawBody.length)`). `JSON.parse(rawBody)`; `validateCode(body.code)` 400 on fail; `c.set('code', body.code)`. Resolve `ip` from the same header chain as the log wrapper (already in `c.var.ip` if 6a sets it via `c.set('ip', ip)` — recommended). Call `await checkAndIncrement(getDb(c.env), ip)`; on `!allowed` → `c.header('Retry-After', String(resetInSeconds))` + 429. Otherwise `INSERT INTO user_state (code, data_json, updated_at, bytes) VALUES (?, ?, ?, ?) ON CONFLICT(code) DO UPDATE SET data_json = excluded.data_json, updated_at = excluded.updated_at, bytes = excluded.bytes` with `args: [code, JSON.stringify(body.data), body.updatedAt, rawBody.length]`. Return 204.
