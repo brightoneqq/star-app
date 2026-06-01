@@ -71,6 +71,35 @@
         if (s) s.remove();
     }
 
+    function injectCardSubmitButtons() {
+        var cards = document.querySelectorAll('.vocab-card[id]');
+        Array.prototype.forEach.call(cards, function (cardEl) {
+            if (cardEl.querySelector('.quiz-card-submit-wrap')) return;
+            if (cardEl.querySelectorAll('.blank').length === 0) return;
+            var wrap = document.createElement('div');
+            wrap.className = 'quiz-card-submit-wrap';
+            var btn = document.createElement('button');
+            btn.className = 'quiz-submit quiz-submit--card';
+            btn.textContent = '提交本卡';
+            wrap.appendChild(btn);
+            cardEl.appendChild(wrap);
+            M.addTapListener(btn, function () {
+                var result = gradeScope(cardEl);
+                if (cardEl.id) {
+                    M.writeNumber('quizScore_' + SLUG + '_' + cardEl.id, result.score);
+                }
+                updateCardBadge(cardEl, result.score);
+            });
+        });
+    }
+
+    function removeCardSubmitButtons() {
+        var wraps = document.querySelectorAll('.quiz-card-submit-wrap');
+        Array.prototype.forEach.call(wraps, function (el) {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        });
+    }
+
     // ---------- Quiz input lifecycle ----------
     function createQuizInputs() {
         var blanks = document.querySelectorAll('.blank');
@@ -101,10 +130,21 @@
         });
     }
 
-    function gradeQuiz() {
-        var inputs = document.querySelectorAll('.quiz-input');
+    function closestVocabCardWithId(el) {
+        var n = el;
+        while (n && n.nodeType === 1) {
+            if (n.classList && n.classList.contains('vocab-card') && n.id) return n;
+            n = n.parentNode;
+        }
+        return null;
+    }
+
+    function gradeScope(scopeEl) {
+        var inputs = scopeEl.querySelectorAll('.quiz-input');
         var total = inputs.length;
         var correct = 0;
+        var trackPerCard = (scopeEl === document);
+        var byCard = trackPerCard ? {} : null;
         inputs.forEach(function (inp) {
             var expected = inp.getAttribute('data-answer') || '';
             var ok = M.isAnswerCorrect(inp.value, expected);
@@ -122,9 +162,34 @@
                 h.textContent = '✗ ' + expected;
                 inp.parentNode.insertBefore(h, inp.nextSibling);
             }
+            if (trackPerCard) {
+                var cardEl = closestVocabCardWithId(inp);
+                if (cardEl) {
+                    var cid = cardEl.id;
+                    var bucket = byCard[cid];
+                    if (!bucket) {
+                        bucket = { correct: 0, total: 0 };
+                        byCard[cid] = bucket;
+                    }
+                    bucket.total++;
+                    if (ok) bucket.correct++;
+                }
+            }
         });
+        if (trackPerCard) {
+            for (var cid in byCard) {
+                if (Object.prototype.hasOwnProperty.call(byCard, cid)) {
+                    var entry = byCard[cid];
+                    entry.score = entry.total > 0 ? Math.round((entry.correct / entry.total) * 100) : 0;
+                }
+            }
+        }
         var score = total > 0 ? Math.round((correct / total) * 100) : 0;
-        return { score: score, correct: correct, total: total };
+        return { score: score, correct: correct, total: total, byCard: byCard };
+    }
+
+    function gradeQuiz() {
+        return gradeScope(document);
     }
 
     function showBanner(result) {
@@ -137,6 +202,48 @@
             b.classList.remove('visible');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+    }
+
+    // ---------- Card score badges ----------
+    function tierForScore(score) {
+        var n = Number(score);
+        if (n >= 80) return 'tier-high';
+        if (n >= 60) return 'tier-mid';
+        return 'tier-low';
+    }
+
+    function updateCardBadge(cardEl, score) {
+        var actions = cardEl.querySelector('.card-actions');
+        if (!actions) return;
+        var badge = actions.querySelector('.card-score-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            actions.insertBefore(badge, actions.firstChild);
+        }
+        badge.className = 'card-score-badge ' + tierForScore(score);
+        badge.textContent = '上次 ' + score + '%';
+    }
+
+    function renderInitialCardBadges() {
+        var cards = document.querySelectorAll('.vocab-card[id]');
+        Array.prototype.forEach.call(cards, function (cardEl) {
+            var s = M.readNumber('quizScore_' + SLUG + '_' + cardEl.id);
+            if (s !== null && !isNaN(s)) {
+                updateCardBadge(cardEl, s);
+            }
+        });
+    }
+
+    function refreshAllCardBadges(byCard) {
+        if (!byCard) return;
+        for (var cid in byCard) {
+            if (Object.prototype.hasOwnProperty.call(byCard, cid)) {
+                var cardEl = document.getElementById(cid);
+                if (cardEl) {
+                    updateCardBadge(cardEl, byCard[cid].score);
+                }
+            }
+        }
     }
 
     // ---------- Mode switching ----------
@@ -159,12 +266,22 @@
                 var result = gradeQuiz();
                 M.writeNumber(KEY_SCORE, result.score);
                 M.writeNumber(KEY_QTIME, Date.now());
+                if (result.byCard) {
+                    for (var cid in result.byCard) {
+                        if (Object.prototype.hasOwnProperty.call(result.byCard, cid)) {
+                            M.writeNumber('quizScore_' + SLUG + '_' + cid, result.byCard[cid].score);
+                        }
+                    }
+                    refreshAllCardBadges(result.byCard);
+                }
                 showBanner(result);
             });
+            injectCardSubmitButtons();
         } else {
             // review mode: clean up
             resetQuizInputs();
             removeQuizUi();
+            removeCardSubmitButtons();
         }
     }
 
@@ -172,6 +289,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         M.writeNumber(KEY_LAST, Date.now());
         injectTopBar();
+        renderInitialCardBadges();
 
         document.querySelectorAll('.mode-tab').forEach(function (tab) {
             M.addTapListener(tab, function () {

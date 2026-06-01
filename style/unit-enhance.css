@@ -178,3 +178,30 @@ body:not(.quiz-mode) .quiz-banner { display: none; }
     .unit-topbar { gap: 10px; }
     .mode-tab { padding: 7px 14px; font-size: 0.88rem; }
 }
+
+/* Per-card submit (in-card variant of .quiz-submit) */
+.quiz-card-submit-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+body:not(.quiz-mode) .quiz-card-submit-wrap { display: none; }
+
+.quiz-submit.quiz-submit--card {
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(30, 95, 184, 0.18);
+}
+
+/* Per-card last-score badge in .card-actions */
+.card-score-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-right: 8px;
+}
+.card-score-badge.tier-high { background: var(--accent-green-soft); color: var(--accent-green); }
+.card-score-badge.tier-mid  { background: var(--accent-amber-soft); color: var(--accent-amber); }
+.card-score-badge.tier-low  { background: var(--neutral-gray-soft); color: var(--text-secondary); }
